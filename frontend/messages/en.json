@@ -1,0 +1,11 @@
+{
+  "Common": {
+    "welcome": "Welcome to Wayto",
+    "tagline": "Connect, share, and build community together."
+  },
+  "Feed": {
+    "title": "Community Feed",
+    "placeholder": "What's on your mind?",
+    "postButton": "Post"
+  }
+}
