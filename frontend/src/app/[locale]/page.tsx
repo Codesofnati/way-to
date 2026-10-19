@@ -1,5 +1,4 @@
 import {getTranslations} from 'next-intl/server';
-import {Link} from '@/i18n/routing';
 
 export const instant = false;
 
@@ -13,8 +12,8 @@ export default async function WaytoHome() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-black text-indigo-600">Wayto</h1>
           <div className="flex gap-2">
-            <Link href="/" locale="en" className="px-3 py-1 bg-white border rounded text-sm font-medium shadow-sm hover:bg-gray-100">English</Link>
-            <Link href="/" locale="am" className="px-3 py-1 bg-white border rounded text-sm font-medium shadow-sm hover:bg-gray-100">አማርኛ</Link>
+            <a href="/en" className="px-3 py-1 bg-white border rounded text-sm font-medium shadow-sm hover:bg-gray-100">English</a>
+            <a href="/am" className="px-3 py-1 bg-white border rounded text-sm font-medium shadow-sm hover:bg-gray-100">አማርኛ</a>
           </div>
         </div>
 
