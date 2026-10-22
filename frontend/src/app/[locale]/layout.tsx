@@ -1,14 +1,16 @@
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
-import {notFound} from 'next/navigation';
-import {routing} from '@/i18n/routing';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
+import { Suspense } from 'react';
 import "../globals.css";
+import DashboardLayout from '../components/DashboardLayout';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export default async function LocaleLayout({
+async function RootLayoutContent({
   children,
   params
 }: {
@@ -24,11 +26,28 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body>
+      <body className="bg-[#FAFAFA] text-gray-900 antialiased">
         <NextIntlClientProvider messages={messages}>
-          {children}
+          {/* Wrap everything in our new responsive DashboardLayout */}
+          <DashboardLayout>
+            {children}
+          </DashboardLayout>
         </NextIntlClientProvider>
       </body>
     </html>
+  );
+}
+
+export default function LocaleLayout({
+  children,
+  params
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center text-gray-500 font-medium">Loading...</div>}>
+      <RootLayoutContent params={params}>{children}</RootLayoutContent>
+    </Suspense>
   );
 }
