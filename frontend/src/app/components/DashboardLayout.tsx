@@ -53,6 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       { name: 'Manage Admins', path: '/en/admin/manage-admins' },
       { name: 'User Moderation', path: '/en/admin/user-moderation' },
       { name: 'Payment Approvals', path: '/en/admin/payments' },
+      { name: 'Payment Settings', path: '/en/admin/settings' }, // ✅ Added
       { name: 'Referral Analytics', path: '/en/admin/referrals' },
       { name: 'Personal Information', path: '/en/admin/profile' }, // ✅ Added
 

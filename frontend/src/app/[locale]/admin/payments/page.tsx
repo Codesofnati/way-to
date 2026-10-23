@@ -8,7 +8,8 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
   
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPayment, setSelectedPayment] = useState<any>(null); // For the Modal
+  const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open'); // ✅ Tab state
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
 
@@ -33,47 +34,41 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
     }
   };
 
-  // --- SEARCH & SORT LOGIC ---
   const handleSort = (key: string) => {
     let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
     setSortConfig({ key, direction });
   };
 
+  // ✅ Filter by Tab AND Search
   const filteredAndSortedPayments = payments
     .filter(p => {
+      const isClosed = p.status === 'approved';
+      // Hide if it doesn't match the active tab
+      if (activeTab === 'open' && isClosed) return false;
+      if (activeTab === 'closed' && !isClosed) return false;
+
+      // Search filter
       const searchLower = searchQuery.toLowerCase();
       return (
         p.id.toLowerCase().includes(searchLower) ||
         p.ftNumber.toLowerCase().includes(searchLower) ||
-        p.userId?.phone?.toLowerCase().includes(searchLower) || // Assuming backend joins user phone
+        p.userId?.phone?.toLowerCase().includes(searchLower) ||
         p.payment_method.toLowerCase().includes(searchLower)
       );
     })
     .sort((a, b) => {
       let aVal = a[sortConfig.key];
       let bVal = b[sortConfig.key];
-
-      // Handle special cases for sorting
-      if (sortConfig.key === 'phone') {
-        aVal = a.userId?.phone || '';
-        bVal = b.userId?.phone || '';
-      } else if (sortConfig.key === 'amount') {
-        aVal = parseFloat(aVal);
-        bVal = parseFloat(bVal);
-      }
-
+      if (sortConfig.key === 'phone') { aVal = a.userId?.phone || ''; bVal = b.userId?.phone || ''; }
+      if (sortConfig.key === 'amount') { aVal = parseFloat(aVal); bVal = parseFloat(bVal); }
       if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
 
-  // --- APPROVE / CLOSE TICKET ---
   const handleApprove = async (paymentId: string) => {
-    const confirmClose = confirm("Are you sure this payment is correct? This will add to the user's wallet.");
-    if (!confirmClose) return;
+    if (!confirm("Are you sure this payment is correct? This will add to the user's wallet.")) return;
 
     const res = await fetch(`${apiUrl}/api/admin/payments/${paymentId}/approve`, {
       method: 'POST', 
@@ -83,36 +78,52 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
     const data = await res.json();
     
     if (data.success) {
-      alert('Ticket closed and approved successfully!');
-      setSelectedPayment(null); // Close modal
-      fetchPayments(); // Refresh table
+      alert('Payment approved! Wallet updated.');
+      setSelectedPayment(null);
+      fetchPayments(); // Refresh the list
     } else {
       alert(data.error);
     }
   };
 
-  // --- UPDATE USER NAME (Inside Modal) ---
   const handleUpdateName = async (userId: string, currentName: string) => {
     const newName = prompt("Enter new name for this user:", currentName);
     if (!newName || newName === currentName) return;
-
     await fetch(`${apiUrl}/api/admin/users/${userId}/name`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newName })
     });
     alert('User name updated!');
+    fetchPayments();
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading payments...</div>;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Payment Approvals</h1>
-        <p className="text-gray-500 font-medium">Review and close pending payment tickets.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Payment Approvals</h1>
+          <p className="text-gray-500 font-medium">Review and close pending payment tickets.</p>
+        </div>
+        
+        {/* ✅ TABS */}
+        <div className="bg-white p-1 rounded-2xl shadow-sm border border-gray-100 flex gap-1">
+          <button 
+            onClick={() => setActiveTab('open')}
+            className={`px-6 py-2 rounded-xl text-sm font-bold transition ${activeTab === 'open' ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Open Approvals
+          </button>
+          <button 
+            onClick={() => setActiveTab('closed')}
+            className={`px-6 py-2 rounded-xl text-sm font-bold transition ${activeTab === 'closed' ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Closed Approvals
+          </button>
+        </div>
       </div>
 
-      {/* Search Bar */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
         <input 
           type="text" 
@@ -123,7 +134,6 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
         />
       </div>
 
-      {/* Data Table */}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600">
@@ -140,14 +150,12 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredAndSortedPayments.map((p: any) => {
-                const approvedBy = JSON.parse(p.approvedBy_admins || '[]');
                 const isClosed = p.status === 'approved';
-                
                 return (
                   <tr 
                     key={p.id} 
                     onClick={() => setSelectedPayment(p)}
-                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${isClosed ? 'opacity-60 bg-gray-50' : ''}`}
+                    className="cursor-pointer transition-colors hover:bg-gray-50"
                   >
                     <td className="px-6 py-4 font-mono text-xs">{p.id.split('-')[0]}...</td>
                     <td className="px-6 py-4 font-medium">{p.userId?.phone || 'N/A'}</td>
@@ -159,9 +167,7 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
                       {isClosed ? (
                         <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">Closed</span>
                       ) : (
-                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">
-                          Open ({approvedBy.length}/10)
-                        </span>
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">Open</span>
                       )}
                     </td>
                   </tr>
@@ -170,23 +176,20 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
             </tbody>
           </table>
           {filteredAndSortedPayments.length === 0 && (
-            <div className="p-8 text-center text-gray-500">No payments found matching your search.</div>
+            <div className="p-8 text-center text-gray-500">No {activeTab} payments found.</div>
           )}
         </div>
       </div>
 
-      {/* --- DETAIL & APPROVAL MODAL --- */}
+      {/* DETAIL & APPROVAL MODAL */}
       {selectedPayment && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-            
-            {/* Modal Header */}
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden">
             <div className="bg-gray-50 p-6 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Ticket Details</h2>
               <button onClick={() => setSelectedPayment(null)} className="text-gray-400 hover:text-gray-900 font-bold text-xl">&times;</button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -202,7 +205,7 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
                   <p className="font-mono text-sm text-gray-800">{selectedPayment.ftNumber}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-bold uppercase">Date Submitted</p>
+                  <p className="text-xs text-gray-500 font-bold uppercase">Date</p>
                   <p className="text-sm text-gray-800">{new Date(selectedPayment.createdAt).toLocaleString()}</p>
                 </div>
               </div>
@@ -212,14 +215,9 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
                 <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
                   <div>
                     <p className="font-bold text-gray-900">{selectedPayment.userId?.name || 'Unknown'}</p>
-                    <p className="text-xs text-gray-500">{selectedPayment.userId?.phone || 'No Phone'}</p>
+                    <p className="text-xs text-gray-500">{selectedPayment.userId?.phone}</p>
                   </div>
-                  <button 
-                    onClick={() => handleUpdateName(selectedPayment.userId?.id, selectedPayment.userId?.name)}
-                    className="text-xs font-bold text-[#B519FF] hover:underline"
-                  >
-                    Edit Name
-                  </button>
+                  <button onClick={() => handleUpdateName(selectedPayment.userId?.id, selectedPayment.userId?.name)} className="text-xs font-bold text-[#B519FF] hover:underline">Edit Name</button>
                 </div>
               </div>
 
@@ -230,18 +228,14 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
               </div>
             </div>
 
-            {/* Modal Footer (Actions) */}
             <div className="p-6 bg-gray-50 border-t border-gray-100">
               {selectedPayment.status === 'approved' ? (
-                <div className="text-center">
+                <div className="text-center bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                   <p className="text-sm font-bold text-emerald-600 mb-1">✅ Ticket Closed</p>
-                  <p className="text-xs text-gray-500">This payment was fully approved and credited to the user.</p>
+                  <p className="text-xs text-gray-500">This payment has been approved and added to the user's wallet.</p>
                 </div>
               ) : (
-                <button 
-                  onClick={() => handleApprove(selectedPayment.id)}
-                  className="w-full bg-black text-white p-4 rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2"
-                >
+                <button onClick={() => handleApprove(selectedPayment.id)} className="w-full bg-black text-white p-4 rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                   Approve & Close Ticket
                 </button>

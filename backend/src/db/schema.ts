@@ -51,3 +51,12 @@ export const withdrawals = pgTable('withdrawals', {
   status: text('status').default('pending').notNull(), // 'pending', 'approved', 'rejected'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const paymentMethods = pgTable('payment_methods', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull().unique(), // e.g., "CBE Bank"
+  accountName: text('account_name'),     // ✅ NEW: e.g., "Shortcut Digital"
+  accountNumber: text('account_number'), // ✅ NEW: e.g., "1000123456789"
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

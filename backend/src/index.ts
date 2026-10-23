@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { profiles, notifications, payments, reports, withdrawals } from './db/schema';
+import { profiles, notifications, payments, reports, withdrawals, paymentMethods } from './db/schema';
 
 type Bindings = { DATABASE_URL: string; };
 const app = new Hono<{ Bindings: Bindings }>();
@@ -122,12 +122,36 @@ app.post('/api/user/:id/withdraw', async (c) => {
   return c.json({ success: true, message: 'Withdrawal requested. Pending admin approval.' });
 });
 
+// Super Admin: Edit Payment Method Details
+app.put('/api/super-admin/payment-methods/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const { name, accountName, accountNumber } = await c.req.json();
+    const db = drizzle(postgres(c.env.DATABASE_URL));
+
+    const updated = await db
+      .update(paymentMethods)
+      .set({ name, accountName, accountNumber })
+      .where(eq(paymentMethods.id, id))
+      .returning();
+
+    if (updated.length === 0) {
+      return c.json({ success: false, error: 'Method not found' }, 404);
+    }
+
+    return c.json({ success: true, method: updated[0] }, 200);
+  } catch (err: any) {
+    // Handle duplicate name error
+    if (err.code === '23505') {
+      return c.json({ success: false, error: 'A method with this name already exists.' }, 400);
+    }
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
 // --- ADMIN MODULE ---
 app.get('/api/admin/payments', async (c) => {
   try {
     const db = drizzle(postgres(c.env.DATABASE_URL));
-    
-    // ✅ Join payments with profiles to get the user's phone number
     const allPayments = await db.select({
       id: payments.id,
       amount: payments.amount,
@@ -138,11 +162,7 @@ app.get('/api/admin/payments', async (c) => {
       approvals_count: payments.approvals_count,
       approvedBy_admins: payments.approvedBy_admins,
       createdAt: payments.createdAt,
-      userId: {
-        id: profiles.id,
-        name: profiles.name,
-        phone: profiles.phone,
-      }
+      userId: { id: profiles.id, name: profiles.name, phone: profiles.phone }
     })
     .from(payments)
     .leftJoin(profiles, eq(payments.userId, profiles.id))
@@ -167,7 +187,9 @@ app.post('/api/admin/payments/:id/approve', async (c) => {
     if (approvedBy.includes(adminId)) return c.json({ success: false, error: 'You already approved this' }, 400);
 
     approvedBy.push(adminId);
-    const isCompleted = approvedBy.length >= 10; // 10 Admin Rule
+    
+    // ✅ CHANGED: Only 1 admin is needed to close the ticket
+    const isCompleted = approvedBy.length >= 1; 
 
     await db.update(payments).set({
       approvals_count: approvedBy.length,
@@ -180,12 +202,11 @@ app.post('/api/admin/payments/:id/approve', async (c) => {
       await db.update(profiles).set({ walletBalance: (parseFloat(user.walletBalance) + parseFloat(payment.amount)).toFixed(2) }).where(eq(profiles.id, payment.userId));
       await db.insert(notifications).values({ userId: payment.userId, message: `Payment of ETB ${payment.amount} approved and added to wallet.` });
     }
-    return c.json({ success: true, message: `Approved (${approvedBy.length}/10)` });
+    return c.json({ success: true, message: `Approved successfully!` });
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }
 });
-
 app.post('/api/admin/report', async (c) => {
   const { adminId, targetUserId, reason } = await c.req.json();
   const db = drizzle(postgres(c.env.DATABASE_URL));
@@ -483,4 +504,80 @@ app.put('/api/admin/users/:id/name', async (c) => {
     return c.json({ success: false, error: err.message }, 400);
   }
 });
+
+// ==========================================
+// PAYMENT METHODS MODULE
+// ==========================================
+
+// 1. Public Route (Users need this to see the dropdown)
+app.get('/api/payment-methods', async (c) => {
+  try {
+    const db = drizzle(postgres(c.env.DATABASE_URL));
+    const methods = await db
+      .select()
+      .from(paymentMethods)
+      .where(eq(paymentMethods.isActive, true));
+    return c.json({ success: true, methods }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// 2. Super Admin: Get All Methods (Active + Inactive)
+app.get('/api/super-admin/payment-methods', async (c) => {
+  try {
+    const db = drizzle(postgres(c.env.DATABASE_URL));
+    const methods = await db
+      .select()
+      .from(paymentMethods)
+      .orderBy(paymentMethods.createdAt);
+    return c.json({ success: true, methods }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// 3. Super Admin: Add New Method
+app.post('/api/super-admin/payment-methods', async (c) => {
+  try {
+    const { name, accountName, accountNumber } = await c.req.json();
+    const db = drizzle(postgres(c.env.DATABASE_URL));
+
+    const newMethod = await db
+      .insert(paymentMethods)
+      .values({ name, accountName, accountNumber })
+      .returning();
+
+    return c.json({ success: true, method: newMethod[0] }, 201);
+  } catch (err: any) {
+    if (err.code === '23505') {
+      return c.json({ success: false, error: 'Method already exists' }, 400);
+    }
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// 4. Super Admin: Toggle Method Active/Inactive
+app.put('/api/super-admin/payment-methods/:id/toggle', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const db = drizzle(postgres(c.env.DATABASE_URL));
+
+    const method = (
+      await db.select().from(paymentMethods).where(eq(paymentMethods.id, id)).limit(1)
+    )[0];
+
+    if (!method) return c.json({ success: false, error: 'Method not found' }, 404);
+
+    await db
+      .update(paymentMethods)
+      .set({ isActive: !method.isActive })
+      .where(eq(paymentMethods.id, id));
+
+    return c.json({ success: true, isActive: !method.isActive }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
 export default app;

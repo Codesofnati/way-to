@@ -10,10 +10,13 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Deposit Form State
+  // Dynamic Payment Methods State
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  
+  // Deposit Form State (using methodId instead of hardcoded string)
   const [depositData, setDepositData] = useState({ 
     amount: '', 
-    method: 'CBE Bank', 
+    methodId: '', 
     ft: '', 
     screenshot: '' 
   });
@@ -43,6 +46,7 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
     }
 
     fetchUserData();
+    fetchPaymentMethods();
   }, [router, locale, user.id, user.role]);
 
   const fetchUserData = async () => {
@@ -57,16 +61,34 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
     }
   };
 
+  const fetchPaymentMethods = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/payment-methods`);
+      const data = await res.json();
+      if (data.success && data.methods.length > 0) {
+        setPaymentMethods(data.methods);
+        // Auto-select the first available method
+        setDepositData(prev => ({ ...prev, methodId: data.methods[0].id }));
+      }
+    } catch (err) {
+      console.error("Failed to load payment methods", err);
+    }
+  };
+
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    
+    // Find the selected method name to send to the backend
+    const selectedMethod = paymentMethods.find(m => m.id === depositData.methodId);
+    
     try {
       const res = await fetch(`${apiUrl}/api/user/${user.id}/payment`, {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           amount: depositData.amount, 
-          paymentMethod: depositData.method, 
+          paymentMethod: selectedMethod?.name || 'Unknown', 
           ftNumber: depositData.ft, 
           screenshotUrl: depositData.screenshot 
         })
@@ -75,7 +97,7 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
       if (!res.ok) throw new Error(data.error);
       
       alert('Deposit request submitted successfully! Waiting for admin approval.');
-      setDepositData({ amount: '', method: 'CBE Bank', ft: '', screenshot: '' });
+      setDepositData({ amount: '', methodId: paymentMethods[0]?.id || '', ft: '', screenshot: '' });
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -107,6 +129,9 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
 
   // Generate Referral Link
   const referralLink = `${window.location.origin}/${locale}/auth?ref=${user.id}`;
+
+  // Find currently selected method details to display the Account Number box
+  const selectedMethod = paymentMethods.find(m => m.id === depositData.methodId);
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
@@ -153,17 +178,26 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Payment Method</label>
               <select 
-                value={depositData.method}
-                onChange={e => setDepositData({...depositData, method: e.target.value})} 
+                value={depositData.methodId}
+                onChange={e => setDepositData({...depositData, methodId: e.target.value})} 
                 className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#B519FF]"
+                required
               >
-                <option value="CBE Bank">CBE Bank</option>
-                <option value="CBE Birr">CBE Birr</option>
-                <option value="Telebirr">Telebirr</option>
-                <option value="Abyssinia Bank">Abyssinia Bank</option>
-                <option value="Dashen Bank">Dashen Bank</option>
+                {paymentMethods.length === 0 && <option value="">No methods available</option>}
+                {paymentMethods.map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
               </select>
             </div>
+
+            {/* ✅ DYNAMIC ACCOUNT DETAILS BOX */}
+            {selectedMethod && (
+              <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100 space-y-1">
+                <p className="text-xs text-[#B519FF] font-bold uppercase tracking-wider mb-2">Send Payment To:</p>
+                <p className="text-sm font-bold text-gray-900">Account Name: {selectedMethod.accountName}</p>
+                <p className="text-lg font-mono font-bold text-gray-900 tracking-wide">Acc No: {selectedMethod.accountNumber}</p>
+              </div>
+            )}
             
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount (ETB)</label>
@@ -180,7 +214,7 @@ export default function UserDashboard({ params }: { params: Promise<{ locale: st
               <input type="url" placeholder="https://..." value={depositData.screenshot} onChange={e => setDepositData({...depositData, screenshot: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#B519FF]" />
             </div>
 
-            <button type="submit" disabled={submitting} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
+            <button type="submit" disabled={submitting || paymentMethods.length === 0} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
               {submitting ? 'Submitting...' : 'Submit Deposit'}
             </button>
           </form>
