@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 export default function ManageAdmins({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
   const router = useRouter();
+  
   const [admins, setAdmins] = useState<any[]>([]);
+  const [performance, setPerformance] = useState<any[]>([]);
   const [newAdmin, setNewAdmin] = useState({ name: '', phone: '', password: '' });
   const [loading, setLoading] = useState(true);
   
@@ -24,7 +26,10 @@ export default function ManageAdmins({ params }: { params: Promise<{ locale: str
     try {
       const res = await fetch(`${apiUrl}/api/super-admin/analytics`);
       const result = await res.json();
-      if (result.success) setAdmins(result.admins);
+      if (result.success) {
+        setAdmins(result.admins);
+        setPerformance(result.analytics.adminPerformance || []);
+      }
     } finally {
       setLoading(false);
     }
@@ -62,14 +67,43 @@ export default function ManageAdmins({ params }: { params: Promise<{ locale: str
     alert('Password reset successfully.');
   };
 
+  const handleDeleteAdmin = async (adminId: string, name: string) => {
+    if (!confirm(`Are you absolutely sure you want to DELETE admin "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${apiUrl}/api/super-admin/admins/${adminId}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      fetchAdmins();
+    } catch (err: any) { alert(err.message); }
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
+  // ✅ Find the Best Admin (Highest Net Volume)
+  const bestAdmin = performance.length > 0 
+    ? [...performance].sort((a, b) => b.netVolume - a.netVolume)[0] 
+    : null;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-6xl mx-auto pb-12">
       <div>
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Manage Admins</h1>
-        <p className="text-gray-500 font-medium">Create new admins and manage existing accounts.</p>
+        <p className="text-gray-500 font-medium">Create, manage, and track admin performance.</p>
       </div>
+
+      {/* ✅ Best Admin Banner */}
+      {bestAdmin && (
+        <div className="bg-black text-white p-6 rounded-3xl shadow-lg flex justify-between items-center">
+          <div>
+            <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Top Performing Admin</p>
+            <h2 className="text-2xl font-bold">🏆 {bestAdmin.name}</h2>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Net Volume Processed</p>
+            <p className="text-2xl font-black text-[#B519FF]">ETB {bestAdmin.netVolume.toFixed(2)}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Create Form */}
@@ -83,24 +117,51 @@ export default function ManageAdmins({ params }: { params: Promise<{ locale: str
           </form>
         </div>
 
-        {/* Admins List */}
+        {/* Admins List with Performance */}
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 lg:col-span-2">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Active Admins</h2>
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-            {admins.map((adm: any) => (
-              <div key={adm.id} className="flex flex-col sm:flex-row justify-between sm:items-center p-4 bg-gray-50 rounded-2xl gap-3 border border-gray-100">
-                <div>
-                  <p className="font-bold text-gray-900">{adm.name}</p>
-                  <p className="text-xs text-gray-500">{adm.phone} • {adm.isLocked ? '🔒 Locked' : '✅ Active'}</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Active Admins & Performance</h2>
+          <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+            {admins.map((adm: any) => {
+              const stats = performance.find(p => p.id === adm.id) || { depositsCount: 0, depositsVolume: 0, withdrawalsCount: 0, withdrawalsVolume: 0, netVolume: 0 };
+              
+              return (
+                <div key={adm.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                  {/* Admin Info */}
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div>
+                      <p className="font-bold text-lg text-gray-900">{adm.name}</p>
+                      <p className="text-xs text-gray-500">{adm.phone} • {adm.isLocked ? '🔒 Locked' : '✅ Active'}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleToggleLock(adm.id)} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${adm.isLocked ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
+                        {adm.isLocked ? 'Unlock' : 'Lock'}
+                      </button>
+                      <button onClick={() => handleResetPassword(adm.id)} className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-gray-200 text-gray-700 hover:bg-gray-100">Reset PW</button>
+                      <button onClick={() => handleDeleteAdmin(adm.id, adm.name)} className="px-4 py-2 rounded-xl text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200">Delete</button>
+                    </div>
+                  </div>
+
+                  {/* ✅ Admin Performance Grid */}
+                  <div className="grid grid-cols-3 gap-3 border-t border-gray-200 pt-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase">Deposits</p>
+                      <p className="font-bold text-emerald-600">ETB {stats.depositsVolume.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400">{stats.depositsCount} tickets</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase">Withdrawals</p>
+                      <p className="font-bold text-red-600">ETB {stats.withdrawalsVolume.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400">{stats.withdrawalsCount} tickets</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase">Net Volume</p>
+                      <p className={`font-black ${stats.netVolume >= 0 ? 'text-gray-900' : 'text-red-600'}`}>ETB {stats.netVolume.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400">Dep - Wth</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => handleToggleLock(adm.id)} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${adm.isLocked ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
-                    {adm.isLocked ? 'Unlock' : 'Lock'}
-                  </button>
-                  <button onClick={() => handleResetPassword(adm.id)} className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-gray-200 text-gray-700 hover:bg-gray-100">Reset PW</button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

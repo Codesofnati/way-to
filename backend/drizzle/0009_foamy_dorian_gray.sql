@@ -1,0 +1,1 @@
+ALTER TABLE "job_tasks" ADD COLUMN "scheduled_date" text NOT NULL;

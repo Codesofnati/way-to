@@ -1,0 +1,1 @@
+ALTER TABLE "job_tasks" ADD COLUMN "thumbnail_url" text;

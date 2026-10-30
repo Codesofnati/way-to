@@ -1,0 +1,1 @@
+ALTER TABLE "payments" ADD COLUMN "assigned_to" text;

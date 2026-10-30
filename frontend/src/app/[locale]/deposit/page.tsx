@@ -1,109 +1,172 @@
 'use client';
+import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { useState, useEffect, use, Suspense } from 'react';
+export default function UserDeposit({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(params);
+  const router = useRouter();
+  
+  const [userData, setUserData] = useState<any>(null);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-function DepositContent({ params }: { params: Promise<{ locale: string }> }) {
-  const resolvedParams = use(params);
-  const locale = resolvedParams.locale;
+  // Deposit State
+  const [depositData, setDepositData] = useState({ amount: '', methodId: '', ft: '', screenshot: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
   const isAmharic = locale === 'am';
 
-  const [userId, setUserId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Telebirr');
-  const [payAmount, setPayAmount] = useState('');
-  const [ftNumber, setFtNumber] = useState('');
-  const [screenshot, setScreenshot] = useState('');
-
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      window.location.href = `/${locale}/auth`;
+    if (!user.id) {
+      router.push(`/${locale}/auth`);
       return;
     }
-    setUserId(JSON.parse(storedUser).id);
-  }, [locale]);
 
-  const handleManualPayment = async (e: React.FormEvent) => {
+    Promise.all([
+      fetch(`${apiUrl}/api/user/${user.id}/dashboard`).then(res => res.json()),
+      fetch(`${apiUrl}/api/payment-methods`).then(res => res.json())
+    ]).then(([userRes, methodsRes]) => {
+      if (userRes.success) setUserData(userRes);
+      if (methodsRes.success && methodsRes.methods.length > 0) {
+        setPaymentMethods(methodsRes.methods);
+      }
+    }).finally(() => setLoading(false));
+  }, [router, locale, user.id, apiUrl]);
+
+  const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
-
+    if (!depositData.methodId) return alert(isAmharic ? 'እባክዎ የክፍያ ዘዴ ይምረጡ' : 'Please select a payment method.');
+    
+    setSubmitting(true);
+    
+    const selectedMethod = paymentMethods.find(m => m.id === depositData.methodId);
+    
     try {
-      const res = await fetch(`${apiUrl}/api/user/${userId}/payment`, {
-        method: 'POST',
+      const res = await fetch(`${apiUrl}/api/user/${user.id}/payment`, {
+        method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: payAmount, paymentMethod, ftNumber, screenshotUrl: screenshot }),
+        body: JSON.stringify({ 
+          amount: depositData.amount, 
+          paymentMethod: selectedMethod?.name || 'Unknown', 
+          ftNumber: depositData.ft, 
+          screenshotUrl: depositData.screenshot,
+          assignedTo: selectedMethod?.accountName 
+        })
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
-      setPayAmount('');
-      setFtNumber('');
-      setScreenshot('');
-      alert(isAmharic ? 'ክፍያው ተልኳል! በቅርቡ ይረጋገጣል።' : 'Payment submitted successfully! It will be reviewed soon.');
+      
+      alert(isAmharic ? 'የገንዘብ ማስገቢያ ጥያቄው በተሳካ ሁኔታ ተልኳል! የአድሚን ማረጋገጫ በመጠበቅ ላይ።' : 'Deposit request submitted successfully! Waiting for admin approval.');
+      setDepositData({ amount: '', methodId: '', ft: '', screenshot: '' });
     } catch (err: any) {
       alert(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        
-        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border">
-          <h1 className="text-xl font-bold text-gray-800">{isAmharic ? 'ገንዘብ ማስገባት (Deposit)' : 'Manual Deposit'}</h1>
-          <a href={`/${locale}/dashboard`} className="text-sm text-indigo-600 hover:underline">
-            {isAmharic ? '← ወደ ዳሽቦርድ ተመለስ' : '← Back to Dashboard'}
-          </a>
-        </div>
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+    </div>
+  );
+  if (!userData) return <div className="p-8 text-center text-red-600">{isAmharic ? 'ውሂብ መጫን አልተቻለም።' : 'Failed to load data.'}</div>;
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
-          <div className="p-4 bg-indigo-50 rounded-xl text-sm text-indigo-900 space-y-1">
-            <p className="font-semibold">{isAmharic ? 'የሂሳብ ቁጥሮች / አድራሻዎች:' : 'Our Payment Accounts:'}</p>
-            <p>• <strong>Telebirr / CBE Birr / M-Pesa:</strong> 0920375815 (Name: Wayto Tech)</p>
-            <p>• <strong>Commercial Bank of Ethiopia (CBE):</strong> 1000123456789</p>
-            <p>• <strong>Bank of Abyssinia:</strong> ET12345678901234</p>
-            <p>• <strong>Dashen Bank:</strong> 5432109876543</p>
+  const selectedMethod = paymentMethods.find(m => m.id === depositData.methodId);
+
+  return (
+    <div className="space-y-8 max-w-3xl mx-auto pb-24 relative overflow-hidden">
+      
+      {/* Decorative Background Blur */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+      <div className="relative z-10">
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">
+          {isAmharic ? 'ገንዘብ ማስገባት' : 'Deposit Money'}
+        </h1>
+        <p className="text-gray-500 font-medium">
+          {isAmharic ? 'ወደ ኪስ ቦርሳዎ ገንዘብ ያክሉ።' : 'Add money to your wallet securely.'}
+        </p>
+      </div>
+
+      {/* Balance Header (Read-only) */}
+      <div className="bg-gradient-to-br from-black to-gray-800 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
+        
+        <div className="relative z-10">
+          <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
+            {isAmharic ? 'የአሁኑ ቀሪ ሂሳብ' : 'Current Balance'}
+          </p>
+          <h2 className="text-5xl font-black tracking-tight">ETB {userData.user.walletBalance}</h2>
+        </div>
+      </div>
+
+      {/* Deposit Form */}
+      <div className="bg-white/95 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100 relative z-10">
+        <form onSubmit={handleDeposit} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+              {isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}
+            </label>
+            <select 
+              value={depositData.methodId} 
+              onChange={e => setDepositData({...depositData, methodId: e.target.value})} 
+              className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" 
+              required
+            >
+              <option value="" disabled className="text-gray-400">{isAmharic ? 'የክፍያ ዘዴ ይምረጡ...' : 'Select a payment method...'}</option>
+              {paymentMethods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
           </div>
 
-          <form onSubmit={handleManualPayment} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}</label>
-              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full p-3 border rounded-xl bg-white text-sm">
-                <option value="Telebirr">Telebirr</option>
-                <option value="CBE Birr">CBE Birr</option>
-                <option value="CBE Bank">Commercial Bank of Ethiopia (CBE)</option>
-                <option value="Abyssinia Bank">Bank of Abyssinia</option>
-                <option value="Dashen Bank">Dashen Bank</option>
-                <option value="M-Pesa">M-Pesa</option>
-              </select>
+          {/* Only show Account Details AFTER selecting a method */}
+          {selectedMethod && (
+            <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <p className="text-xs text-[#B519FF] font-bold uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                {isAmharic ? 'ክፍያ ይላኩለት:' : 'Send Payment To:'}
+              </p>
+              <div className="flex justify-between items-center border-b border-purple-200/50 pb-2">
+                 <p className="text-sm font-medium text-gray-600">{isAmharic ? 'የሂሳብ ስም' : 'Account Name'}</p>
+                 <p className="text-sm font-bold text-gray-900">{selectedMethod.accountName}</p>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                 <p className="text-sm font-medium text-gray-600">{isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}</p>
+                 <p className="text-lg font-mono font-bold text-[#B519FF] tracking-wide">{selectedMethod.accountNumber}</p>
+              </div>
             </div>
+          )}
+          
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+              {isAmharic ? 'መጠን (ETB)' : 'Amount (ETB)'}
+            </label>
+            <input type="number" placeholder={isAmharic ? 'ለምሳሌ 500' : 'e.g. 500'} value={depositData.amount} onChange={e => setDepositData({...depositData, amount: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" required />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{isAmharic ? 'መጠን (ETB)' : 'Amount (ETB)'}</label>
-              <input type="number" step="0.01" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="0.00" className="w-full p-3 border rounded-xl text-sm" required />
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+              {isAmharic ? 'የግብይት ቁጥር (FT)' : 'FT Number (Transaction ID)'}
+            </label>
+            <input type="text" placeholder={isAmharic ? 'ለምሳሌ FT123456789' : 'e.g. FT123456789'} value={depositData.ft} onChange={e => setDepositData({...depositData, ft: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" required />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{isAmharic ? 'የግብይት ቁጥር (FT Number)' : 'Transaction / FT Number'}</label>
-              <input type="text" value={ftNumber} onChange={(e) => setFtNumber(e.target.value)} placeholder="FT12345678" className="w-full p-3 border rounded-xl text-sm font-mono" required />
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+              {isAmharic ? 'የስክሪንሾት ሊንክ (ማስረጃ)' : 'Screenshot URL (Proof)'}
+            </label>
+            <input type="url" placeholder="https://..." value={depositData.screenshot} onChange={e => setDepositData({...depositData, screenshot: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{isAmharic ? 'የቅጽበታዊ ገጽ እይታ ሊንክ (Screenshot URL)' : 'Screenshot Image URL'}</label>
-              <input type="text" value={screenshot} onChange={(e) => setScreenshot(e.target.value)} placeholder="Paste image link here" className="w-full p-3 border rounded-xl text-sm" />
-            </div>
-
-            <button type="submit" className="w-full bg-indigo-600 text-white p-3 rounded-xl font-medium hover:bg-indigo-700 transition text-sm">
-              {isAmharic ? 'ክፍያውን ላክ (Submit Payment)' : 'Submit Payment Proof'}
-            </button>
-          </form>
-        </div>
-
+          <button type="submit" disabled={submitting || !depositData.methodId} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4">
+            {submitting ? (isAmharic ? 'በመላክ ላይ...' : 'Submitting...') : (isAmharic ? 'ማስገቢያ አስገባ' : 'Submit Deposit')}
+          </button>
+        </form>
       </div>
-    </main>
+    </div>
   );
-}
-
-export default function DepositPage({ params }: { params: Promise<{ locale: string }> }) {
-  return <Suspense fallback={<div>Loading...</div>}><DepositContent params={params} /></Suspense>;
 }

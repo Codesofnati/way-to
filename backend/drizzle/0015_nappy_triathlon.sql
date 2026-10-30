@@ -1,0 +1,1 @@
+ALTER TABLE "withdrawal_requests" ADD COLUMN "approved_by" uuid;

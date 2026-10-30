@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "has_paid_referral" boolean DEFAULT false NOT NULL;
