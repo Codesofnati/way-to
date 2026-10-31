@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-export function useSessionTimeout(timeoutMinutes = 2) {
+export function useSessionTimeout(timeoutMinutes = 5) { // ✅ Changed to 5 minutes
   const router = useRouter();
   const pathname = usePathname();
   
@@ -14,26 +14,25 @@ export function useSessionTimeout(timeoutMinutes = 2) {
     const isAuthPage = pathname.includes('/auth') || pathname.includes('/login');
     if (isAuthPage) return;
 
-    // Function to clear timers
     const clearTimers = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
 
-    // Function to logout
     const handleLogout = () => {
       clearTimers();
       localStorage.removeItem('user');
-      alert('Your session has expired due to 2 minutes of inactivity.');
-      window.location.href = pathname.split('/')[1] === 'am' ? '/am/auth' : '/en/auth';
+      alert('Your admin session has expired due to 5 minutes of inactivity.');
+      
+      // ✅ Redirect to the admin login page
+      const locale = pathname.split('/')[1] === 'am' ? 'am' : 'en';
+      window.location.href = `/${locale}/admin/login`; 
     };
 
-    // Reset the session timer
     const resetTimer = () => {
       clearTimers();
-      setTimeLeft(timeoutMinutes * 60); // Reset display
+      setTimeLeft(timeoutMinutes * 60); 
 
-      // Start the visible countdown
       countdownRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -44,17 +43,12 @@ export function useSessionTimeout(timeoutMinutes = 2) {
         });
       }, 1000);
 
-      // Set the actual logout timeout
       timerRef.current = setTimeout(handleLogout, timeoutMinutes * 60 * 1000);
     };
 
-    // Events to track user activity
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-    
-    // We only reset on click or keypress (removed mousemove to prevent infinite loops)
     events.forEach(event => window.addEventListener(event, resetTimer));
 
-    // Start timer on mount
     resetTimer();
 
     return () => {
@@ -63,6 +57,11 @@ export function useSessionTimeout(timeoutMinutes = 2) {
     };
   }, [router, pathname, timeoutMinutes]);
 
-  // Return the time left so we can display it in the Layout
-  return { timeLeft };
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  return { timeLeft, formattedTime: formatTime(timeLeft) };
 }
