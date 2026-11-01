@@ -204,6 +204,13 @@
       "when": 1793357535497,
       "tag": "0028_goofy_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793545547792,
+      "tag": "0029_bitter_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

@@ -245,5 +245,6 @@ export const dailyVideos = pgTable('daily_videos', {
   fakeLikes: integer('fake_likes').default(0).notNull(),
   scheduledDate: text('scheduled_date').notNull(), // "YYYY-MM-DD"
   isActive: boolean('is_active').default(true).notNull(),
+  requiresSubscription: boolean('requires_subscription').default(false).notNull(), 
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

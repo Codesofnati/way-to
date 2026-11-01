@@ -198,7 +198,13 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                         onClick={() => { 
                           if (timeState !== 'OPEN') return alert(isAmharic ? 'ተግባሮች ተዘግተዋል።' : 'Tasks are closed. Please check back between 8:00 AM and 4:00 PM.');
                           setActiveTask({...task, jobId: myJob.jobId}); 
-                          setShowVideo(false);
+                          
+                          // ✅ Check if the task requires subscription
+                          if (task.requiresSubscription) {
+                            setShowVideo(false); // Show Subscribe screen first
+                          } else {
+                            setShowVideo(true); // Skip straight to the video
+                          }
                         }}
                         disabled={task.isCompleted || timeState !== 'OPEN'}
                         className={`w-full py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all shadow-sm ${

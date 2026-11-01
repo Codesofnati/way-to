@@ -60,7 +60,6 @@ export default function AdminUserBanks({ params }: { params: Promise<{ locale: s
     } catch (err: any) { alert(err.message); }
   };
 
-  // ✅ NEW: Handle Delete Function
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this bank information? The user will have to submit it again.')) return;
     
@@ -83,29 +82,44 @@ export default function AdminUserBanks({ params }: { params: Promise<{ locale: s
     );
   });
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading bank details...</div>;
+  if (loading) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-gray-400">
+      <div className="w-10 h-10 border-4 border-[#B519FF] border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="font-bold tracking-widest uppercase text-xs">Loading Details...</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+      
       <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">User Bank Details</h1>
-        <p className="text-gray-500 font-medium">Manage bank information for withdrawals. Users cannot edit this once saved.</p>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2">User Bank Details</h1>
+        <p className="text-gray-400 font-medium">Manage bank information for withdrawals. Users cannot edit this once saved.</p>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-        <input 
-          type="text" 
-          placeholder="Search by Name, Phone, Account Number, or Bank..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#B519FF]"
-        />
+      {/* Search Bar */}
+      <div className="bg-[#131825] p-2 rounded-2xl border border-gray-800">
+        <div className="relative">
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-3 pl-10 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF]" 
+          />
+          {!searchQuery && (
+            <span className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+              Search by Name, Phone, Account Number, or Bank...
+            </span>
+          )}
+          <svg className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50 text-xs uppercase font-bold text-gray-500">
+      {/* Table */}
+      <div className="bg-[#131825] rounded-3xl border border-gray-800 overflow-hidden">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-sm text-gray-300 min-w-[900px]">
+            <thead className="bg-[#0B0F19] text-[10px] uppercase font-bold text-gray-500">
               <tr>
                 <th className="px-6 py-4">User</th>
                 <th className="px-6 py-4">Bank Name</th>
@@ -115,34 +129,40 @@ export default function AdminUserBanks({ params }: { params: Promise<{ locale: s
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-800/50">
               {filteredDetails.map((d: any) => (
-                <tr key={d.id} className="hover:bg-gray-50 transition">
+                <tr key={d.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4">
-                    {/* ✅ Highlight if user is deleted/orphaned */}
-                    <p className={`font-bold ${d.userName ? 'text-gray-900' : 'text-red-500'}`}>
+                    <p className={`font-bold ${d.userName ? 'text-white' : 'text-red-400'}`}>
                       {d.userName || 'Deleted User'}
                     </p>
-                    <p className="text-xs text-gray-500">{d.userPhone || 'No Phone'}</p>
+                    <p className="text-xs text-gray-400">{d.userPhone || 'No Phone'}</p>
                   </td>
-                  <td className="px-6 py-4 font-medium">{d.bankName}</td>
-                  <td className="px-6 py-4">{d.accountHolderName}</td>
-                  <td className="px-6 py-4 font-mono">{d.accountNumber}</td>
+                  <td className="px-6 py-4">
+                    <span className="bg-gray-800 text-gray-300 px-2.5 py-1 rounded-md text-[10px] font-bold border border-gray-700">
+                      {d.bankName}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-300">{d.accountHolderName}</td>
+                  <td className="px-6 py-4 font-mono text-xs text-gray-400">{d.accountNumber}</td>
                   <td className="px-6 py-4 text-xs">
-                    <p>{new Date(d.updatedAt).toLocaleString()}</p>
-                    {d.adminEdited && <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded-md mt-1 inline-block">Edited by Admin</span>}
+                    <p className="text-gray-400">{new Date(d.updatedAt).toLocaleString()}</p>
+                    {d.adminEdited && (
+                      <span className="text-[9px] text-orange-400 font-bold bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-md mt-1 inline-block uppercase tracking-widest">
+                        Edited by Admin
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <button 
                       onClick={() => handleEditClick(d)}
-                      className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-100 transition"
+                      className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500/20 transition"
                     >
                       Edit
                     </button>
-                    {/* ✅ NEW: Delete Button */}
                     <button 
                       onClick={() => handleDelete(d.id)}
-                      className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-100 transition"
+                      className="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500/20 transition"
                     >
                       Delete
                     </button>
@@ -151,60 +171,69 @@ export default function AdminUserBanks({ params }: { params: Promise<{ locale: s
               ))}
             </tbody>
           </table>
-          {filteredDetails.length === 0 && <div className="p-8 text-center text-gray-500">No bank details found.</div>}
+          {filteredDetails.length === 0 && (
+            <div className="p-12 text-center text-gray-500 bg-[#0B0F19] border-t border-gray-800">
+              No bank details found.
+            </div>
+          )}
         </div>
       </div>
 
       {/* EDIT MODAL */}
       {selectedDetails && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="bg-gray-50 p-6 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Edit Bank Details</h2>
-              <button onClick={() => setSelectedDetails(null)} className="text-gray-400 hover:text-gray-900 font-bold text-xl">&times;</button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#131825] rounded-3xl border border-gray-700 shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#0B0F19]">
+              <h2 className="text-xl font-bold text-white">Edit Bank Details</h2>
+              <button onClick={() => setSelectedDetails(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:text-white transition text-xl font-bold">&times;</button>
             </div>
             
-            <form onSubmit={handleSave} className="p-6 space-y-4">
-              <div className="bg-orange-50 p-3 rounded-xl border border-orange-100 mb-4">
-                <p className="text-xs text-orange-700 font-bold">You are editing the bank information for <span className="underline">{selectedDetails.userName}</span> ({selectedDetails.userPhone}). Please double-check the details.</p>
+            <form onSubmit={handleSave} className="p-6 space-y-5">
+              <div className="bg-orange-500/10 p-4 rounded-xl border border-orange-500/20">
+                <p className="text-xs text-orange-400 font-medium leading-relaxed">
+                  You are editing the bank information for <strong className="text-orange-300 underline">{selectedDetails.userName}</strong> ({selectedDetails.userPhone}). Please double-check the details.
+                </p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Bank</label>
-                <select 
-                  value={editForm.bankId} 
-                  onChange={e => setEditForm({...editForm, bankId: e.target.value})} 
-                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#B519FF]"
-                  required
-                >
-                  <option value="">Select a bank...</option>
-                  {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Bank</label>
+                <div className="relative">
+                  <select 
+                    value={editForm.bankId} 
+                    onChange={e => setEditForm({...editForm, bankId: e.target.value})} 
+                    className="w-full p-4 bg-[#0B0F19] border border-gray-700 rounded-2xl text-sm text-white outline-none focus:border-[#B519FF] appearance-none"
+                    required
+                  >
+                    <option value="" disabled hidden>Select a bank...</option>
+                    {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                  <svg className="w-5 h-5 text-gray-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Account Holder Name</label>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Account Holder Name</label>
                 <input 
                   type="text" 
                   value={editForm.accountHolderName} 
                   onChange={e => setEditForm({...editForm, accountHolderName: e.target.value})} 
-                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#B519FF]" 
+                  className="w-full p-4 bg-[#0B0F19] border border-gray-700 rounded-2xl text-sm text-white outline-none focus:border-[#B519FF]" 
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Account Number</label>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Account Number</label>
                 <input 
                   type="text" 
                   value={editForm.accountNumber} 
                   onChange={e => setEditForm({...editForm, accountNumber: e.target.value})} 
-                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#B519FF]" 
+                  className="w-full p-4 bg-[#0B0F19] border border-gray-700 rounded-2xl text-sm text-white outline-none focus:border-[#B519FF] font-mono" 
                   required
                 />
               </div>
 
-              <button type="submit" className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 transition mt-4">
+              <button type="submit" className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 transition shadow-[0_0_15px_rgba(181,25,255,0.3)] mt-2">
                 Save Bank Details
               </button>
             </form>

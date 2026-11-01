@@ -1498,6 +1498,7 @@ const todayStr = ethiopianDate.toISOString().split('T')[0];
         youtubeUrl: video.youtubeUrl,
         thumbnailUrl: video.thumbnailUrl,
         fakeLikes: video.fakeLikes,
+        requiresSubscription: video.requiresSubscription, 
         isCompleted: submissions.some(
           sub => sub.taskId === video.id && sub.jobId === job.jobId
         ),

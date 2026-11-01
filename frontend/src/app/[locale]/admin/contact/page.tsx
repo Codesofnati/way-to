@@ -79,42 +79,73 @@ export default function AdminContact({ params }: { params: Promise<{ locale: str
     fetchData();
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-gray-400">
+      <div className="w-10 h-10 border-4 border-[#B519FF] border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="font-bold tracking-widest uppercase text-xs">Loading Settings...</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-12">
+    <div className="space-y-8 max-w-6xl mx-auto pb-12">
+      
       <div>
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Contact Settings</h1>
-        <p className="text-gray-500 font-medium">Manage platforms (Telegram, Facebook) and support accounts.</p>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2">Contact Settings</h1>
+        <p className="text-gray-400 font-medium">Manage platforms (Telegram, Facebook) and support accounts.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* SECTION 1: Manage Platforms */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">1. Add New Platform</h2>
-            <form onSubmit={handleCreatePlatform} className="space-y-3">
-              <input type="text" placeholder="Platform Name (e.g. Telegram)" value={newPlatform.name} onChange={e => setNewPlatform({...newPlatform, name: e.target.value})} className="w-full p-3 bg-gray-50 border rounded-xl text-sm" required />
-              <input type="url" placeholder="Base URL (e.g. https://t.me/)" value={newPlatform.baseUrl} onChange={e => setNewPlatform({...newPlatform, baseUrl: e.target.value})} className="w-full p-3 bg-gray-50 border rounded-xl text-sm" required />
-              <input type="url" placeholder="Logo URL (e.g. https://.../logo.png)" value={newPlatform.logoUrl} onChange={e => setNewPlatform({...newPlatform, logoUrl: e.target.value})} className="w-full p-3 bg-gray-50 border rounded-xl text-sm" required />
-              <button type="submit" className="w-full bg-black text-white p-3 rounded-xl font-bold hover:bg-gray-800 transition text-sm">Add Platform</button>
+          
+          {/* Create Platform Form */}
+          <div className="bg-[#131825] p-6 md:p-8 rounded-3xl border border-gray-800 relative overflow-hidden shadow-lg">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#B519FF]/5 rounded-full blur-3xl"></div>
+            
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 relative z-10">
+              <svg className="w-5 h-5 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+              Add New Platform
+            </h2>
+            
+            <form onSubmit={handleCreatePlatform} className="space-y-4 relative z-10">
+              
+              <div className="relative">
+                <input type="text" value={newPlatform.name} onChange={e => setNewPlatform({...newPlatform, name: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF]" required />
+                {!newPlatform.name && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Platform Name (e.g. Telegram)</span>}
+              </div>
+
+              <div className="relative">
+                <input type="url" value={newPlatform.baseUrl} onChange={e => setNewPlatform({...newPlatform, baseUrl: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF]" required />
+                {!newPlatform.baseUrl && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Base URL (e.g. https://t.me/)</span>}
+              </div>
+
+              <div className="relative">
+                <input type="url" value={newPlatform.logoUrl} onChange={e => setNewPlatform({...newPlatform, logoUrl: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF]" required />
+                {!newPlatform.logoUrl && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Logo URL (e.g. https://.../logo.png)</span>}
+              </div>
+
+              <button type="submit" className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition shadow-[0_0_15px_rgba(181,25,255,0.3)] text-sm mt-2">Add Platform</button>
             </form>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Available Platforms</h2>
-            <div className="space-y-2">
+          {/* List Platforms */}
+          <div className="bg-[#131825] p-6 md:p-8 rounded-3xl border border-gray-800">
+            <h2 className="text-xl font-bold text-white mb-4">Available Platforms</h2>
+            <div className="space-y-3">
+              {platforms.length === 0 && <p className="text-sm text-gray-500 italic">No platforms added yet.</p>}
               {platforms.map((p: any) => (
-                <div key={p.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div key={p.id} className="flex justify-between items-center p-4 bg-[#0B0F19] rounded-xl border border-gray-800 hover:border-gray-600 transition">
                   <div className="flex items-center gap-3">
-                    <img src={p.logoUrl} alt={p.name} className="w-8 h-8 rounded-full object-cover bg-white" />
+                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
+                      <img src={p.logoUrl} alt={p.name} className="w-full h-full object-cover" />
+                    </div>
                     <div>
-                      <p className="font-bold text-sm text-gray-900">{p.name}</p>
-                      <p className="text-[10px] text-gray-500">{p.baseUrl}</p>
+                      <p className="font-bold text-sm text-white">{p.name}</p>
+                      <p className="text-[10px] text-gray-500 truncate max-w-[150px]">{p.baseUrl}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeletePlatform(p.id)} className="text-red-500 text-xs font-bold hover:underline">Delete</button>
+                  <button onClick={() => handleDeletePlatform(p.id)} className="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20 transition">Delete</button>
                 </div>
               ))}
             </div>
@@ -123,37 +154,65 @@ export default function AdminContact({ params }: { params: Promise<{ locale: str
 
         {/* SECTION 2: Manage Contact Methods */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">2. Add Support Account</h2>
-            <form onSubmit={handleCreateMethod} className="space-y-3">
-              <input type="text" placeholder="Display Name (e.g. Abebe Support)" value={newMethod.name} onChange={e => setNewMethod({...newMethod, name: e.target.value})} className="w-full p-3 bg-gray-50 border rounded-xl text-sm" required />
-              <input type="text" placeholder="Username (e.g. @abebe_support)" value={newMethod.username} onChange={e => setNewMethod({...newMethod, username: e.target.value})} className="w-full p-3 bg-gray-50 border rounded-xl text-sm" required />
-              <select 
-                value={newMethod.platformId} 
-                onChange={e => setNewMethod({...newMethod, platformId: e.target.value})} 
-                className="w-full p-3 bg-gray-50 border rounded-xl text-sm" 
-                required
-              >
-                <option value="">Select a Platform...</option>
-                {platforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              <button type="submit" className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition text-sm">Add Contact Account</button>
+          
+          {/* Create Method Form */}
+          <div className="bg-[#131825] p-6 md:p-8 rounded-3xl border border-gray-800 relative overflow-hidden shadow-lg">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#B519FF]/5 rounded-full blur-3xl"></div>
+            
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 relative z-10">
+              <svg className="w-5 h-5 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+              Add Support Account
+            </h2>
+            
+            <form onSubmit={handleCreateMethod} className="space-y-4 relative z-10">
+              
+              <div className="relative">
+                <input type="text" value={newMethod.name} onChange={e => setNewMethod({...newMethod, name: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF]" required />
+                {!newMethod.name && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Display Name (e.g. Abebe Support)</span>}
+              </div>
+
+              <div className="relative">
+                <input type="text" value={newMethod.username} onChange={e => setNewMethod({...newMethod, username: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF]" required />
+                {!newMethod.username && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Username (e.g. @abebe_support)</span>}
+              </div>
+
+              <div className="relative">
+                <select 
+                  value={newMethod.platformId} 
+                  onChange={e => setNewMethod({...newMethod, platformId: e.target.value})} 
+                  className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-white outline-none focus:border-[#B519FF] appearance-none" 
+                  required
+                >
+                  <option value="" disabled hidden>Select a Platform...</option>
+                  {platforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                {!newMethod.platformId && (
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Select a Platform...</span>
+                )}
+                <svg className="w-5 h-5 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+
+              <button type="submit" className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition shadow-[0_0_15px_rgba(181,25,255,0.3)] text-sm mt-2">Add Contact Account</button>
             </form>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Active Accounts</h2>
-            <div className="space-y-2">
+          {/* List Methods */}
+          <div className="bg-[#131825] p-6 md:p-8 rounded-3xl border border-gray-800">
+            <h2 className="text-xl font-bold text-white mb-4">Active Accounts</h2>
+            <div className="space-y-3">
+              {methods.length === 0 && <p className="text-sm text-gray-500 italic">No support accounts added yet.</p>}
               {methods.map((m: any) => (
-                <div key={m.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div key={m.id} className="flex justify-between items-center p-4 bg-[#0B0F19] rounded-xl border border-gray-800 hover:border-gray-600 transition">
                   <div className="flex items-center gap-3">
-                    <img src={m.logoUrl} alt={m.name} className="w-8 h-8 rounded-full object-cover bg-white" />
+                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
+                      <img src={m.logoUrl} alt={m.name} className="w-full h-full object-cover" />
+                    </div>
                     <div>
-                      <p className="font-bold text-sm text-gray-900">{m.name}</p>
+                      <p className="font-bold text-sm text-white">{m.name}</p>
                       <p className="text-[10px] text-gray-500">{m.platformName} • {m.username}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteMethod(m.id)} className="text-red-500 text-xs font-bold hover:underline">Delete</button>
+                  <button onClick={() => handleDeleteMethod(m.id)} className="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20 transition">Delete</button>
                 </div>
               ))}
             </div>

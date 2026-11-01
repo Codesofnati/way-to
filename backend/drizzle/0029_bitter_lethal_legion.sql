@@ -1,0 +1,1 @@
+ALTER TABLE "daily_videos" ADD COLUMN "requires_subscription" boolean DEFAULT false NOT NULL;
