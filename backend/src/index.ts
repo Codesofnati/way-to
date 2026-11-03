@@ -2459,11 +2459,15 @@ app.get('/api/stories', async (c) => {
 // Admin: Create Global Notification
 app.post('/api/super-admin/notifications', async (c) => {
   try {
-    const { titleAm, titleEn, contentAm, contentEn, expiresAt } = await c.req.json();
+    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl } = await c.req.json(); // ✅ Ensure imageUrl is extracted
+    
     const db = getDb(c.env.DATABASE_URL);
     const newNotif = await db.insert(globalNotifications).values({ 
-      titleAm, titleEn, contentAm, contentEn, expiresAt: new Date(expiresAt) 
+      titleAm, titleEn, contentAm, contentEn, 
+      expiresAt: new Date(expiresAt),
+      imageUrl // ✅ Ensure it's saved
     }).returning();
+    
     return c.json({ success: true, notification: newNotif[0] }, 201);
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
@@ -2482,12 +2486,14 @@ app.get('/api/active-notification', async (c) => {
       .orderBy(desc(globalNotifications.createdAt))
       .limit(1);
 
-    return c.json({ success: true, notification: active[0] || null }, 200);
+    return c.json({ 
+      success: true, 
+      notification: active[0] || null // Should include imageUrl
+    }, 200);
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }
 });
-
 app.post('/api/admin/withdrawals/:id/lock', async (c) => {
   const id = c.req.param('id');
   const { adminId } = await c.req.json();
@@ -2517,6 +2523,13 @@ app.post('/api/admin/withdrawals/:id/lock', async (c) => {
   }
 });
 
+
+
+// ==========================================
+// APP SETTINGS (PROFIT & VIP) MODULE
+// ==========================================
+
+// Public: Get Settings
 
 app.get('/api/app-settings', async (c) => {
   try {
@@ -2591,6 +2604,29 @@ app.delete('/api/super-admin/stories/:id', async (c) => {
     const db = getDb(c.env.DATABASE_URL);
     await db.delete(stories).where(eq(stories.id, id));
     return c.json({ success: true, message: 'Story deleted' }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Get All Global Notifications
+app.get('/api/super-admin/notifications', async (c) => {
+  try {
+    const db = getDb(c.env.DATABASE_URL);
+    const notifs = await db.select().from(globalNotifications).orderBy(desc(globalNotifications.createdAt));
+    return c.json({ success: true, notifications: notifs }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Delete Global Notification
+app.delete('/api/super-admin/notifications/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const db = getDb(c.env.DATABASE_URL);
+    await db.delete(globalNotifications).where(eq(globalNotifications.id, id));
+    return c.json({ success: true, message: 'Notification deleted' }, 200);
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }

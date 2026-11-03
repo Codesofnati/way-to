@@ -27,11 +27,10 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
     Promise.all([
       fetch(`${apiUrl}/api/stories`).then(r => r.json()),
       fetch(`${apiUrl}/api/active-notification`).then(r => r.json()),
-      fetch(`${apiUrl}/api/app-settings`).then(r => r.json()) // ✅ Fetch App Settings
+      fetch(`${apiUrl}/api/app-settings`).then(r => r.json())
     ]).then(([storiesRes, notifRes, settingsRes]) => {
       if (storiesRes.success) setStories(storiesRes.stories);
       
-      // ✅ Set App Settings
       if (settingsRes.success) {
         setAppSettings({
           profitImages: settingsRes.settings.profitImages || [],
@@ -39,17 +38,17 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
         });
       }
 
+      // ✅ FIX: Always show the modal if there is an active notification
+      // (The backend already filters out expired ones based on `expiresAt`)
       if (notifRes.success && notifRes.notification) {
         setActiveNotif(notifRes.notification);
-        const lastSeen = localStorage.getItem('lastNotifSeen');
-        if (lastSeen !== notifRes.notification.id) setShowNotif(true);
+        setShowNotif(true); 
       }
     }).finally(() => setLoading(false));
   }, [apiUrl]);
 
   const dismissNotif = () => {
     setShowNotif(false);
-    if (activeNotif) localStorage.setItem('lastNotifSeen', activeNotif.id);
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
@@ -88,20 +87,36 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
           <div className={`space-y-4 transition-all duration-500 ${isAboutExpanded ? 'block' : 'hidden'}`}>
             {isAmharic ? (
               <>
-                <p>በዓለም ላይ እጅግ ከተሳሰሩ የዲጂታል ምጣኔ-ሀብት ማዕከላት በአንዱ ውስጥ ስንኖር፣ የርቀት (የኦንላይን) ሥራ የሰዎችን ኑሮ እንዴት እንደሚቀይር... ክብር ያለው እና አስተማማኝ ገቢ የማግኘት ዕድል ሰው በተወለደበት የፖስታ ኮድ ወይም አካባቢ መወሰን የለበትም።</p>
-                <p>ቴክኖሎጂ ሰዎችን የሚያራርቅ ሳይሆን ክፍተቶችን የሚያጠብ የእኩልነት ድልድይ መሆን አለበት በሚል ጽኑ እምነት ይህንን ተቋም መሠረትን።</p>
+                <p>በዓለም ላይ እጅግ ከተሳሰሩ የዲጂታል ምጣኔ-ሀብት ማዕከላት በአንዱ ውስጥ ስንኖር፣ የርቀት (የኦንላይን) ሥራ የሰዎችን ኑሮ እንዴት እንደሚቀይር፣ የጊዜ ነፃነትና የገንዘብ ራስን መቻልን እንዴት እንደሚያጎናፅፍ በአካል ተመልክተናል። በሌላ በኩል ደግሞ፣ በመላው ዓለም የሚገኙ በርካታ ብቁ እና ታታሪ ግለሰቦች በመልክዓ-ምድራዊ እና በኢኮኖሚ መሰናክሎች ብቻ ወደኋላ ሲቀሩ አይተናል። ክብር ያለው እና አስተማማኝ ገቢ የማግኘት ዕድል ሰው በተወለደበት የፖስታ ኮድ ወይም አካባቢ መወሰን የለበትም።</p>
+                <p>ቴክኖሎጂ ሰዎችን የሚያራርቅ ሳይሆን ክፍተቶችን የሚያጠብ የእኩልነት ድልድይ መሆን አለበት በሚል ጽኑ እምነት ይህንን ተቋም መሠረትን። ዝቅተኛ ገቢ ያላቸው ታታሪ ዜጎችን ከዓለም አቀፉ የዲጂታል ኢኮኖሚ ጋር እናገናኛለን—ይህም ጊዜያዊ ሥራዎችን በማመቻቸት ብቻ ሳይሆን፣ ዘላቂ የገቢ ምንጭ እንዲፈጥሩ የሚያስችሉ ተግባራዊ ሥልጠናዎችን፣ የዲጂታል መሠረተ-ልማቶችን እና አስተማማኝ የክፍያ ሥርዓቶችን በማቅረብ ነው።</p>
+                <p>በካናዳ የተጀመረው ይህ ጥረት ዛሬ ድንበር የለሽ ማህበረሰብ ፈጥሯል፤ ይህም ሰዎች ተገቢውን ዕድል እና መሣሪያ ሲያገኙ ራሳቸውን መመገብ ብቻ ሳይሆን፣ ቤተሰቦቻቸውን እና ማህበረሰባቸውን ከፍ እንደሚያደርጉ በተግባር ያሳያል።</p>
                 <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-4">
                   <h4 className="font-bold text-[#B519FF] mb-2">ተልዕኮ (Mission)</h4>
-                  <p className="text-gray-700">ዝቅተኛ ገቢ ላላቸው ወገኖች አስፈላጊውን የዲጂታል ክህሎት በማስታጠቅ እና ቀጥታ ተገቢ ክፍያ ካላቸው ዘላቂ የኦንላይን ሥራዎች ጋር በማገናኘት የኢኮኖሚ እንቅፋቶችን ማስወገድ።</p>
+                  <p className="text-gray-700 mb-3">ዝቅተኛ ገቢ ላላቸው ወገኖች አስፈላጊውን የዲጂታል ክህሎት በማስታጠቅ እና ቀጥታ ተገቢ ክፍያ ካላቸው ዘላቂ የኦንላይን ሥራዎች ጋር በማገናኘት የኢኮኖሚ እንቅፋቶችን ማስወገድ።</p>
+                  
+                  <h4 className="font-bold text-[#B519FF] mb-2">ዋና ዋና እሴቶቻችን (Core Values)</h4>
+                  <ul className="list-disc pl-4 space-y-1 text-gray-700">
+                    <li><strong>ተደራሽነት (Radical Accessibility):</strong> ግለሰቦች ከዚህ ቀደም የቴክኖሎጂ ልምድ ይኑራቸው አይኑራቸው፣ ለእያንዳንዱ ሰው በቀላሉ የሚገቡ ሥልጠናዎችንና መሣሪያዎችን ማዘጋጀት።</li>
+                    <li><strong>ዘላቂ አቅም ግንባታ (Sustainable Empowerment):</strong> ከመረዳዳት ባለፈ በተግባራዊ ክህሎት እና በገበያ ትስስር ራስን በራስ ማስተዳደር ላይ ማተኮር።</li>
+                    <li><strong>ዓለም አቀፍ ትስስር (Global Community):</strong> በዓለም አቀፉ የሥራ ፍላጎት እና በአካባቢው ባሉ ብቁ ታታሪ ኃይሎች መካከል እውነተኛ ድልድይ መፍጠር።</li>
+                  </ul>
                 </div>
               </>
             ) : (
               <>
-                <p>Living in one of the most connected digital economies in the world, we saw how remote work transformed lives... Access to dignified, reliable income shouldn’t depend on the postal code you were born in.</p>
-                <p>Driven by the belief that technology should be an equalizer rather than a divider, we set out to build a platform that bridges the gap.</p>
+                <p>Living in one of the most connected digital economies in the world, we saw how remote work transformed lives, offering flexibility and financial independence. At the same time, we saw billions of capable, hardworking individuals around the world held back solely by geographic and economic barriers. Access to dignified, reliable income shouldn’t depend on the postal code you were born in.</p>
+                <p>Driven by the belief that technology should be an equalizer rather than a divider, we set out to build a platform that bridges the gap. We connect determined individuals from low-income communities with the global digital economy—providing not just gig opportunities, but the practical training, digital infrastructure, and reliable payment systems needed to build lasting livelihoods.</p>
+                <p>What started as a Canadian initiative has grown into a borderless community, proving that when people are given the tools to participate, they don’t just earn a living—they lift up their families and transform their communities.</p>
                 <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-4">
                   <h4 className="font-bold text-[#B519FF] mb-2">Mission Statement</h4>
-                  <p className="text-gray-700">To dismantle systemic economic barriers by equipping low-income individuals with digital skills and connecting them directly to sustainable, fair-paying online work.</p>
+                  <p className="text-gray-700 mb-3">To dismantle systemic economic barriers by equipping low-income individuals with digital skills and connecting them directly to sustainable, fair-paying online work.</p>
+                  
+                  <h4 className="font-bold text-[#B519FF] mb-2">Core Values</h4>
+                  <ul className="list-disc pl-4 space-y-1 text-gray-700">
+                    <li><strong>Radical Accessibility:</strong> Designing tools, training, and onboarding that meet people where they are, regardless of prior technical experience.</li>
+                    <li><strong>Sustainable Empowerment:</strong> Moving beyond charity toward self-sufficiency through practical skill-building and market integration.</li>
+                    <li><strong>Global Community:</strong> Building authentic connections between global demand and resilient local talent.</li>
+                  </ul>
                 </div>
               </>
             )}
@@ -117,7 +132,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
           onClick={() => setActiveImageModal('profit')}
           className="w-full h-32 rounded-2xl overflow-hidden relative group shadow-sm hover:shadow-md transition bg-gray-900"
         >
-          {/* Uses the first uploaded profit image as a background if it exists */}
           {appSettings.profitImages.length > 0 && (
             <img src={appSettings.profitImages[0]} alt="Profit" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
           )}
@@ -234,20 +248,27 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
       {/* ✅ 6. Popup Notification Modal */}
       {showNotif && activeNotif && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
             <button onClick={dismissNotif} className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center z-10 transition">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
 
-            {activeNotif.imageUrl ? (
-              <img src={activeNotif.imageUrl} alt="Notification Banner" className="w-full h-auto object-cover max-h-[60vh]" />
-            ) : (
-              <div className="w-full h-48 bg-gradient-to-tr from-[#B519FF] to-purple-400 flex items-center justify-center">
-                 <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-              </div>
-            )}
+            {/* ✅ Fixed Image Container */}
+            <div className="w-full bg-[#B519FF]/10 flex items-center justify-center min-h-[200px] overflow-hidden">
+              {activeNotif.imageUrl ? (
+                <img 
+                  src={activeNotif.imageUrl} 
+                  alt="Notification Banner" 
+                  className="w-full h-auto max-h-[50vh] object-contain" 
+                />
+              ) : (
+                <div className="w-full h-48 bg-gradient-to-tr from-[#B519FF] to-purple-400 flex items-center justify-center">
+                  <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </div>
+              )}
+            </div>
 
-            <div className="p-5 text-center">
+            <div className="p-5 text-center overflow-y-auto">
               <h3 className="text-lg font-bold text-gray-900 mb-1">{isAmharic ? activeNotif.titleAm : activeNotif.titleEn}</h3>
               <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap">{isAmharic ? activeNotif.contentAm : activeNotif.contentEn}</p>
               <button onClick={dismissNotif} className="w-full bg-[#1A1A1A] text-white py-3 rounded-lg font-bold hover:bg-black transition">{isAmharic ? 'ዝጋ' : 'Close'}</button>
