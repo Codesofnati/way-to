@@ -2459,14 +2459,16 @@ app.get('/api/stories', async (c) => {
 // Admin: Create Global Notification
 app.post('/api/super-admin/notifications', async (c) => {
   try {
-    // ✅ Make sure imageUrl is extracted here
-    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl } = await c.req.json(); 
+    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl } = await c.req.json();
     const db = getDb(c.env.DATABASE_URL);
     
     const newNotif = await db.insert(globalNotifications).values({ 
-      titleAm, titleEn, contentAm, contentEn, 
+      titleAm: titleAm || null,
+      titleEn: titleEn || null,
+      contentAm: contentAm || null,
+      contentEn: contentEn || null,
       expiresAt: new Date(expiresAt),
-      imageUrl: imageUrl || null // ✅ Make sure it is saved
+      imageUrl: imageUrl || null
     }).returning();
     
     return c.json({ success: true, notification: newNotif[0] }, 201);
@@ -2476,25 +2478,25 @@ app.post('/api/super-admin/notifications', async (c) => {
 });
 
 // Public: Get Active Notification (If any)
+
+// Public: Get ALL Active Notifications (for carousel)
 app.get('/api/active-notification', async (c) => {
   try {
     const db = getDb(c.env.DATABASE_URL);
     const now = new Date();
     
-    // Get the latest notification that hasn't expired yet
+    // Get all notifications that haven't expired yet
     const active = await db.select().from(globalNotifications)
       .where(gte(globalNotifications.expiresAt, now))
-      .orderBy(desc(globalNotifications.createdAt))
-      .limit(1);
+      .orderBy(desc(globalNotifications.createdAt));
 
-    return c.json({ 
-      success: true, 
-      notification: active[0] || null // Should include imageUrl
-    }, 200);
+    return c.json({ success: true, notifications: active }, 200);
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }
 });
+
+
 app.post('/api/admin/withdrawals/:id/lock', async (c) => {
   const id = c.req.param('id');
   const { adminId } = await c.req.json();

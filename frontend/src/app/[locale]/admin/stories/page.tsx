@@ -8,16 +8,18 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
   const router = useRouter();
 
   const [stories, setStories] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]); // ✅ State for sent popups
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Story Form State
   const [newStory, setNewStory] = useState({ titleAm: '', titleEn: '', contentAm: '', contentEn: '' });
   const [storyFile, setStoryFile] = useState<File | null>(null);
+  const [submittingStory, setSubmittingStory] = useState(false);
   
   // Notification Form State
   const [newNotif, setNewNotif] = useState({ titleAm: '', titleEn: '', contentAm: '', contentEn: '', expiresAt: '' });
   const [notifFile, setNotifFile] = useState<File | null>(null);
+  const [submittingNotif, setSubmittingNotif] = useState(false);
 
   // MODAL STATES
   const [viewingStory, setViewingStory] = useState<any>(null); 
@@ -38,7 +40,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
     try {
       const [storiesRes, notifsRes] = await Promise.all([
         fetch(`${apiUrl}/api/stories`).then(r => r.json()),
-        fetch(`${apiUrl}/api/super-admin/notifications`).then(r => r.json()) // ✅ Fetch Notifications
+        fetch(`${apiUrl}/api/super-admin/notifications`).then(r => r.json())
       ]);
       if (storiesRes.success) setStories(storiesRes.stories);
       if (notifsRes.success) setNotifications(notifsRes.notifications);
@@ -56,6 +58,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
   // --- CREATE STORY ---
   const handleCreateStory = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmittingStory(true);
     try {
       let imageUrl = '';
       if (storyFile) imageUrl = await uploadImage(storyFile);
@@ -71,11 +74,13 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
       setStoryFile(null);
       fetchData();
     } catch (err: any) { alert(err.message); }
+    finally { setSubmittingStory(false); }
   };
 
   // --- CREATE NOTIFICATION ---
   const handleCreateNotif = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmittingNotif(true);
     try {
       let imageUrl = '';
       if (notifFile) imageUrl = await uploadImage(notifFile);
@@ -89,8 +94,9 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
       alert('Notification sent!');
       setNewNotif({ titleAm: '', titleEn: '', contentAm: '', contentEn: '', expiresAt: '' });
       setNotifFile(null);
-      fetchData(); // Refresh list
+      fetchData(); 
     } catch (err: any) { alert(err.message); }
+    finally { setSubmittingNotif(false); }
   };
 
   // --- DELETE STORY ---
@@ -169,7 +175,9 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Story Image</label>
               <input type="file" accept="image/*" onChange={e => setStoryFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF]" />
             </div>
-            <button type="submit" className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition">Post Story</button>
+            <button type="submit" disabled={submittingStory} className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
+              {submittingStory ? 'Posting...' : 'Post Story'}
+            </button>
           </form>
         </div>
 
@@ -181,11 +189,11 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
           </h2>
           <form onSubmit={handleCreateNotif} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <input type="text" placeholder="Title (Am)" value={newNotif.titleAm} onChange={e => setNewNotif({...newNotif, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" required />
-              <input type="text" placeholder="Title (En)" value={newNotif.titleEn} onChange={e => setNewNotif({...newNotif, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" required />
+              <input type="text" placeholder="Title (Am)" value={newNotif.titleAm} onChange={e => setNewNotif({...newNotif, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" />
+              <input type="text" placeholder="Title (En)" value={newNotif.titleEn} onChange={e => setNewNotif({...newNotif, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" />
             </div>
-            <textarea placeholder="Content (Am)" value={newNotif.contentAm} onChange={e => setNewNotif({...newNotif, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-20 outline-none focus:border-[#B519FF]" required />
-            <textarea placeholder="Content (En)" value={newNotif.contentEn} onChange={e => setNewNotif({...newNotif, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-20 outline-none focus:border-[#B519FF]" required />
+            <textarea placeholder="Content (Am)" value={newNotif.contentAm} onChange={e => setNewNotif({...newNotif, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-20 outline-none focus:border-[#B519FF]" />
+            <textarea placeholder="Content (En)" value={newNotif.contentEn} onChange={e => setNewNotif({...newNotif, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-20 outline-none focus:border-[#B519FF]" />
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Modal Image</label>
               <input type="file" accept="image/*" onChange={e => setNotifFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF]" />
@@ -194,7 +202,9 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Expiry Date</label>
               <input type="date" value={newNotif.expiresAt} onChange={e => setNewNotif({...newNotif, expiresAt: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF] color-scheme-dark" required />
             </div>
-            <button type="submit" className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition">Send Modal</button>
+            <button type="submit" disabled={submittingNotif} className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
+              {submittingNotif ? 'Sending...' : 'Send Modal'}
+            </button>
           </form>
         </div>
       </div>
@@ -245,7 +255,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
         )}
       </div>
 
-      {/* ✅ RECENT NOTIFICATIONS (VIEW/DELETE) */}
+      {/* RECENT NOTIFICATIONS */}
       <div className="bg-[#131825] p-6 rounded-3xl border border-gray-800">
         <h2 className="text-xl font-bold text-white mb-6">Sent Popup Notifications</h2>
         
@@ -260,7 +270,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
                     <img src={notif.imageUrl} className="w-16 h-16 rounded-lg object-cover border border-gray-700" />
                   )}
                   <div>
-                    <p className="font-bold text-white text-sm">{notif.titleEn}</p>
+                    <p className="font-bold text-white text-sm">{notif.titleEn || 'No Title'}</p>
                     <p className="text-[10px] text-gray-500 mt-0.5">{notif.titleAm}</p>
                     <p className="text-xs text-gray-500 line-clamp-1 mt-1">{notif.contentEn}</p>
                     <p className="text-[10px] text-orange-400 font-bold mt-1">
@@ -277,7 +287,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
         )}
       </div>
 
-      {/* ✅ VIEW STORY MODAL */}
+      {/* VIEW STORY MODAL */}
       {viewingStory && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#131825] rounded-3xl border border-gray-700 shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95">
@@ -310,7 +320,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
         </div>
       )}
 
-      {/* ✅ EDIT STORY MODAL */}
+      {/* EDIT STORY MODAL */}
       {editingStory && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#131825] rounded-3xl border border-orange-500/50 shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95">

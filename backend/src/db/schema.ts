@@ -265,10 +265,10 @@ export const stories = pgTable('stories', {
 // ✅ 2. Global Popup Notifications
 export const globalNotifications = pgTable('global_notifications', {
   id: uuid('id').defaultRandom().primaryKey(),
-  titleAm: text('title_am').notNull(),
-  titleEn: text('title_en').notNull(),
-  contentAm: text('content_am').notNull(),
-  contentEn: text('content_en').notNull(),
+  titleAm: text('title_am'),
+  titleEn: text('title_en'),
+  contentAm: text('content_am'),
+  contentEn: text('content_en'),
   imageUrl: text('image_url'), // ✅ Add this line
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
