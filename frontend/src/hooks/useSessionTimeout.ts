@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-export function useSessionTimeout(timeoutMinutes = 5) { // ✅ Changed to 5 minutes
+export function useSessionTimeout(timeoutMinutes = 5) {
   const router = useRouter();
   const pathname = usePathname();
   
@@ -21,12 +21,24 @@ export function useSessionTimeout(timeoutMinutes = 5) { // ✅ Changed to 5 minu
 
     const handleLogout = () => {
       clearTimers();
-      localStorage.removeItem('user');
-      alert('Your admin session has expired due to 5 minutes of inactivity.');
       
-      // ✅ Redirect to the admin login page
+      // ✅ Check the role BEFORE removing the user
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : {};
+      const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+      
+      localStorage.removeItem('user');
+      
       const locale = pathname.split('/')[1] === 'am' ? 'am' : 'en';
-      window.location.href = `/${locale}/admin/login`; 
+      
+      // ✅ Show correct message and redirect to correct login
+      if (isAdmin) {
+        alert('Your admin session has expired due to 5 minutes of inactivity.');
+        window.location.href = `/${locale}/admin/login`; 
+      } else {
+        alert('Your session has expired due to 5 minutes of inactivity.');
+        window.location.href = `/${locale}/auth`; 
+      }
     };
 
     const resetTimer = () => {

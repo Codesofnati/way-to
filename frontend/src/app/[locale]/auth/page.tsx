@@ -146,7 +146,7 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                   />
                   {!phone && (
                     <span className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
-                      +251...
+                      09...
                     </span>
                   )}
                 </div>

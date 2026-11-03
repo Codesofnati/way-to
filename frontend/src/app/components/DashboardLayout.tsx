@@ -263,10 +263,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ✅ USER BOTTOM NAV BAR */}
       {userRole === 'user' && !isAdminRoute && (
         <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 flex justify-around items-center py-3 pb-safe z-50 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-          <Link href={`/${currentLocale}/dashboard`} className={`flex flex-col items-center gap-1 w-16 ${pathname === `/${currentLocale}/dashboard` ? 'text-black' : 'text-gray-400'}`}>
-            <svg className={`w-6 h-6 ${pathname === `/${currentLocale}/dashboard` ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span className="text-[10px] font-bold">{isAmharic ? 'መነሻ' : 'Home'}</span>
-          </Link>
+         <Link href={`/${currentLocale}/home`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/home') ? 'text-black' : 'text-gray-400'}`}>
+  <svg className={`w-6 h-6 ${pathname.includes('/home') ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+  <span className="text-[10px] font-bold">{isAmharic ? 'መነሻ' : 'Home'}</span>
+</Link> 
           
           <Link href={`/${currentLocale}/funds`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/funds') ? 'text-black' : 'text-gray-400'}`}>
             <svg className={`w-6 h-6 ${pathname.includes('/funds') ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -289,6 +289,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              </div>
             <span className="text-[10px] font-bold">{isAmharic ? 'የእኔ' : 'Mine'}</span>
           </Link>
+
+         
         </div>
       )}
     </div>

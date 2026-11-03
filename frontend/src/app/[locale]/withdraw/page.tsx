@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function UserWithdraw({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -9,6 +10,7 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
   const [userData, setUserData] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [myRequests, setMyRequests] = useState<any[]>([]);
+  const [bankDetails, setBankDetails] = useState<any>(null); // ✅ Track bank info
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -33,15 +35,17 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
 
   const fetchData = async () => {
     try {
-      const [userRes, settingsRes, requestsRes] = await Promise.all([
+      const [userRes, settingsRes, requestsRes, bankRes] = await Promise.all([
         fetch(`${apiUrl}/api/user/${user.id}/dashboard`).then(res => res.json()),
         fetch(`${apiUrl}/api/withdraw-settings`).then(res => res.json()),
-        fetch(`${apiUrl}/api/user/${user.id}/my-withdrawals`).then(res => res.json())
+        fetch(`${apiUrl}/api/user/${user.id}/my-withdrawals`).then(res => res.json()),
+        fetch(`${apiUrl}/api/user/${user.id}/bank-details`).then(res => res.json()) // ✅ Fetch bank info
       ]);
       
       if (userRes.success) setUserData(userRes);
       if (settingsRes.success) setSettings(settingsRes.settings);
       if (requestsRes.success) setMyRequests(requestsRes.requests);
+      if (bankRes.success) setBankDetails(bankRes.details);
     } finally { setLoading(false); }
   };
 
@@ -62,6 +66,7 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
   const handleRequest = async () => {
     if (!selectedAmount) return;
     if (!isTimeAllowed) return alert(isAmharic ? 'ገንዘብ ማውጣት አሁን ተዘግቷል። እባክዎ በሚፈቀዱ ሰዓታት ውስጥ ይመለሱ።' : 'Withdrawals are currently closed for the day. Please come back during the allowed hours.');
+    if (!bankDetails) return alert(isAmharic ? 'እባክዎ መጀመሪያ የባንክ መረጃዎን ያስገቡ።' : 'Please add your bank information first.');
     
     if (!confirm(isAmharic ? `እርግጠኛ ነዎት ETB ${selectedAmount} ማውጣት ይፈልጋሉ?` : `Are you sure you want to withdraw ETB ${selectedAmount}?`)) return;
 
@@ -127,101 +132,125 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
         <h2 className="text-4xl font-black tracking-tight">ETB {userData?.user?.walletBalance || '0.00'}</h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
-        
-        {/* Request Form */}
-        <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
-              <svg className="w-4 h-4 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            {isAmharic ? 'መጠን ይምረጡ' : 'Select Amount'}
-          </h2>
-          
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {allowedAmounts.map((amount: number) => (
-              <button 
-                key={amount}
-                onClick={() => setSelectedAmount(amount)}
-                disabled={!isTimeAllowed}
-                className={`p-4 rounded-2xl font-bold border-2 transition-all ${
-                  !isTimeAllowed 
-                    ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50' 
-                    : selectedAmount === amount 
-                      ? 'border-[#B519FF] bg-purple-50 text-[#B519FF] shadow-sm transform scale-105' 
-                      : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-[#B519FF]/50 hover:bg-white'
-                }`}
-              >
-                ETB {amount}
-              </button>
-            ))}
+      {/* ✅ BANK INFO CHECK */}
+      {!bankDetails ? (
+        <div className="bg-orange-50/80 backdrop-blur-md p-8 rounded-[2rem] border border-orange-200 text-center relative z-10 shadow-sm">
+          <div className="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
           </div>
-
-          {selectedAmount && (
-            <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100 mb-6 space-y-3 animate-in fade-in slide-in-from-top-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{isAmharic ? 'የተጠየቀ መጠን' : 'Requested Amount'}</span>
-                <span className="font-bold text-gray-900">ETB {selectedAmount}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{isAmharic ? 'ታክስ' : 'Tax'} ({taxPercent}%)</span>
-                <span className="font-bold text-red-500">- ETB {taxAmount}</span>
-              </div>
-              <div className="border-t border-gray-200 pt-3 flex justify-between">
-                <span className="font-bold text-gray-900">{isAmharic ? 'የሚቀበሉት' : 'You Will Receive'}</span>
-                <span className="font-black text-emerald-600 text-lg">ETB {receiveAmount}</span>
-              </div>
-            </div>
-          )}
-
-          <button 
-            onClick={handleRequest}
-            disabled={!selectedAmount || submitting || !isTimeAllowed || parseFloat(userData?.user?.walletBalance || '0') < selectedAmount}
-            className={`w-full p-4 rounded-2xl font-bold transition-all ${
-              !isTimeAllowed 
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                : 'bg-[#B519FF] text-white hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none'
-            }`}
+          <h3 className="text-xl font-bold text-orange-900 mb-2">
+            {isAmharic ? 'የባንክ መረጃ ያስፈልጋል' : 'Bank Information Required'}
+          </h3>
+          <p className="text-orange-700 max-w-md mx-auto mb-6 text-sm">
+            {isAmharic 
+              ? 'ገንዘብ ከማውጣትዎ በፊት እባክዎ የባንክ መለያዎን መረጃ ማስገባት አለብዎት። ይህ መረጃ ለአንድ ጊዜ ብቻ ነው የሚሞላው።' 
+              : 'You must add your bank information before you can request a withdrawal. This information is locked once saved.'}
+          </p>
+          <Link 
+            href={`/${locale}/bank-info`} 
+            className="inline-flex items-center justify-center gap-2 bg-orange-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-700 transition shadow-md"
           >
-            {submitting 
-              ? (isAmharic ? 'በሂደት ላይ...' : 'Processing...') 
-              : !isTimeAllowed 
-                ? (isAmharic ? 'ማውጣት ተዘግቷል' : 'Withdrawals Closed') 
-                : (isAmharic ? 'ማውጣት ጠይቅ' : 'Request Withdrawal')}
-          </button>
+            {isAmharic ? 'የባንክ መረጃ ያስገቡ' : 'Add Bank Information'}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </Link>
         </div>
-
-        {/* History */}
-        <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
+          
+          {/* Request Form */}
+          <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              {isAmharic ? 'መጠን ይምረጡ' : 'Select Amount'}
+            </h2>
+            
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {allowedAmounts.map((amount: number) => (
+                <button 
+                  key={amount}
+                  onClick={() => setSelectedAmount(amount)}
+                  disabled={!isTimeAllowed}
+                  className={`p-4 rounded-2xl font-bold border-2 transition-all ${
+                    !isTimeAllowed 
+                      ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50' 
+                      : selectedAmount === amount 
+                        ? 'border-[#B519FF] bg-purple-50 text-[#B519FF] shadow-sm transform scale-105' 
+                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-[#B519FF]/50 hover:bg-white'
+                  }`}
+                >
+                  ETB {amount}
+                </button>
+              ))}
             </div>
-            {isAmharic ? 'የእኔ ገንዘብ ማውጣቶች' : 'My Withdrawals'}
-          </h2>
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            {myRequests.length === 0 && (
-              <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                <p className="text-sm text-gray-400">{isAmharic ? 'እስካሁን ምንም የማውጣት ጥያቄ የለም።' : 'No withdrawal requests yet.'}</p>
+
+            {selectedAmount && (
+              <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100 mb-6 space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{isAmharic ? 'የተጠየቀ መጠን' : 'Requested Amount'}</span>
+                  <span className="font-bold text-gray-900">ETB {selectedAmount}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{isAmharic ? 'ታክስ' : 'Tax'} ({taxPercent}%)</span>
+                  <span className="font-bold text-red-500">- ETB {taxAmount}</span>
+                </div>
+                <div className="border-t border-gray-200 pt-3 flex justify-between">
+                  <span className="font-bold text-gray-900">{isAmharic ? 'የሚቀበሉት' : 'You Will Receive'}</span>
+                  <span className="font-black text-emerald-600 text-lg">ETB {receiveAmount}</span>
+                </div>
               </div>
             )}
-            {myRequests.map((req: any) => (
-              <div key={req.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 flex justify-between items-center hover:shadow-sm transition-all">
-                <div>
-                  <p className="font-bold text-gray-900">ETB {req.amountRequested}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
-                </div>
-                <span className={`text-[10px] font-bold px-3 py-1.5 rounded-md uppercase tracking-wider ${
-                  req.status === 'pending' ? 'bg-orange-100 text-orange-700' : req.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {req.status === 'pending' ? (isAmharic ? 'በመጠባበቅ ላይ' : 'Pending') : req.status === 'approved' ? (isAmharic ? 'ተፈቅዷል' : 'Approved') : (isAmharic ? 'ተቀባይነት አላገኘም' : 'Rejected')}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
 
-      </div>
+            <button 
+              onClick={handleRequest}
+              disabled={!selectedAmount || submitting || !isTimeAllowed || parseFloat(userData?.user?.walletBalance || '0') < selectedAmount}
+              className={`w-full p-4 rounded-2xl font-bold transition-all ${
+                !isTimeAllowed 
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                  : 'bg-[#B519FF] text-white hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none'
+              }`}
+            >
+              {submitting 
+                ? (isAmharic ? 'በሂደት ላይ...' : 'Processing...') 
+                : !isTimeAllowed 
+                  ? (isAmharic ? 'ማውጣት ተዘግቷል' : 'Withdrawals Closed') 
+                  : (isAmharic ? 'ማውጣት ጠይቅ' : 'Request Withdrawal')}
+            </button>
+          </div>
+
+          {/* History */}
+          <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              {isAmharic ? 'የእኔ ገንዘብ ማውጣቶች' : 'My Withdrawals'}
+            </h2>
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {myRequests.length === 0 && (
+                <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                  <p className="text-sm text-gray-400">{isAmharic ? 'እስካሁን ምንም የማውጣት ጥያቄ የለም።' : 'No withdrawal requests yet.'}</p>
+                </div>
+              )}
+              {myRequests.map((req: any) => (
+                <div key={req.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 flex justify-between items-center hover:shadow-sm transition-all">
+                  <div>
+                    <p className="font-bold text-gray-900">ETB {req.amountRequested}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-3 py-1.5 rounded-md uppercase tracking-wider ${
+                    req.status === 'pending' ? 'bg-orange-100 text-orange-700' : req.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {req.status === 'pending' ? (isAmharic ? 'በመጠባበቅ ላይ' : 'Pending') : req.status === 'approved' ? (isAmharic ? 'ተፈቅዷል' : 'Approved') : (isAmharic ? 'ተቀባይነት አላገኘም' : 'Rejected')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      )}
     </div>
   );
 }

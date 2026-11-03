@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase'; // ✅ Import Supabase
 
 export default function UserDeposit({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -11,7 +12,8 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
   const [loading, setLoading] = useState(true);
 
   // Deposit State
-  const [depositData, setDepositData] = useState({ amount: '', methodId: '', ft: '', screenshot: '' });
+  const [depositData, setDepositData] = useState({ amount: '', methodId: '', ft: '' });
+  const [file, setFile] = useState<File | null>(null); // ✅ State for the file
   const [submitting, setSubmitting] = useState(false);
 
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
@@ -19,29 +21,76 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
 
   const isAmharic = locale === 'am';
 
-  useEffect(() => {
-    if (!user.id) {
-      router.push(`/${locale}/auth`);
-      return;
-    }
+ useEffect(() => {
+  if (!user.id) {
+    router.push(`/${locale}/auth`);
+    return;
+  }
 
-    Promise.all([
-      fetch(`${apiUrl}/api/user/${user.id}/dashboard`).then(res => res.json()),
-      fetch(`${apiUrl}/api/payment-methods`).then(res => res.json())
-    ]).then(([userRes, methodsRes]) => {
-      if (userRes.success) setUserData(userRes);
-      if (methodsRes.success && methodsRes.methods.length > 0) {
-        setPaymentMethods(methodsRes.methods);
+  const loadData = async () => {
+    try {
+      const [userRes, methodsRes] = await Promise.all([
+        fetch(`${apiUrl}/api/user/${user.id}/dashboard`),
+        fetch(`${apiUrl}/api/payment-methods`),
+      ]);
+
+      if (!userRes.ok) throw new Error(`Dashboard failed: ${userRes.status}`);
+      if (!methodsRes.ok) throw new Error(`Methods failed: ${methodsRes.status}`);
+
+      const userData = await userRes.json();
+      const methodsData = await methodsRes.json();
+
+      if (userData.success) setUserData(userData);
+      if (methodsData.success && methodsData.methods.length > 0) {
+        setPaymentMethods(methodsData.methods);
       }
-    }).finally(() => setLoading(false));
-  }, [router, locale, user.id, apiUrl]);
+    } catch (err: any) {
+      console.error('❌ Fetch Error:', err.message);
+      alert('Connection error: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadData();
+}, [router, locale, user.id, apiUrl]);
+  // ✅ Upload function
+  const uploadImage = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('screenshots')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('screenshots')
+        .getPublicUrl(data.path);
+
+      return urlData.publicUrl;
+    } catch (err: any) {
+      alert('Image upload failed: ' + err.message);
+      return null;
+    }
+  };
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!depositData.methodId) return alert(isAmharic ? 'እባክዎ የክፍያ ዘዴ ይምረጡ' : 'Please select a payment method.');
+    if (!file) return alert(isAmharic ? 'እባክዎ የክፍያ ማረጋገጫ ስክሪንሾት ይምረጡ' : 'Please upload a screenshot.');
     
     setSubmitting(true);
     
+    // ✅ Upload the file first
+    const screenshotUrl = await uploadImage(file);
+    if (!screenshotUrl) {
+      setSubmitting(false);
+      return;
+    }
+
     const selectedMethod = paymentMethods.find(m => m.id === depositData.methodId);
     
     try {
@@ -52,7 +101,7 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
           amount: depositData.amount, 
           paymentMethod: selectedMethod?.name || 'Unknown', 
           ftNumber: depositData.ft, 
-          screenshotUrl: depositData.screenshot,
+          screenshotUrl: screenshotUrl, // ✅ Send the uploaded URL to backend
           assignedTo: selectedMethod?.accountName 
         })
       });
@@ -60,7 +109,8 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
       if (!res.ok) throw new Error(data.error);
       
       alert(isAmharic ? 'የገንዘብ ማስገቢያ ጥያቄው በተሳካ ሁኔታ ተልኳል! የአድሚን ማረጋገጫ በመጠበቅ ላይ።' : 'Deposit request submitted successfully! Waiting for admin approval.');
-      setDepositData({ amount: '', methodId: '', ft: '', screenshot: '' });
+      setDepositData({ amount: '', methodId: '', ft: '' });
+      setFile(null); // Reset file
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -93,7 +143,7 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
         </p>
       </div>
 
-      {/* Balance Header (Read-only) */}
+      {/* Balance Header */}
       <div className="bg-gradient-to-br from-black to-gray-800 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
         
@@ -123,7 +173,6 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
             </select>
           </div>
 
-          {/* Only show Account Details AFTER selecting a method */}
           {selectedMethod && (
             <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
               <p className="text-xs text-[#B519FF] font-bold uppercase tracking-wider flex items-center gap-1.5 mb-3">
@@ -155,15 +204,22 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
             <input type="text" placeholder={isAmharic ? 'ለምሳሌ FT123456789' : 'e.g. FT123456789'} value={depositData.ft} onChange={e => setDepositData({...depositData, ft: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" required />
           </div>
 
+          {/* ✅ File Upload Input */}
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
-              {isAmharic ? 'የስክሪንሾት ሊንክ (ማስረጃ)' : 'Screenshot URL (Proof)'}
+              {isAmharic ? 'የክፍያ ማረጋገጫ (ስክሪንሾት)' : 'Payment Screenshot'}
             </label>
-            <input type="url" placeholder="https://..." value={depositData.screenshot} onChange={e => setDepositData({...depositData, screenshot: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" />
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={e => setFile(e.target.files?.[0] || null)} 
+              className="w-full p-3 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF] hover:file:bg-[#B519FF]/20 focus:outline-none focus:ring-2 focus:ring-[#B519FF]" 
+              required 
+            />
           </div>
 
-          <button type="submit" disabled={submitting || !depositData.methodId} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4">
-            {submitting ? (isAmharic ? 'በመላክ ላይ...' : 'Submitting...') : (isAmharic ? 'ማስገቢያ አስገባ' : 'Submit Deposit')}
+          <button type="submit" disabled={submitting || !depositData.methodId || !file} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4">
+            {submitting ? (isAmharic ? 'በመላክ ላይ...' : 'Uploading & Submitting...') : (isAmharic ? 'ማስገቢያ አስገባ' : 'Submit Deposit')}
           </button>
         </form>
       </div>

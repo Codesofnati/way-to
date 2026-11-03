@@ -1,4 +1,6 @@
-import { eq, inArray, and, gte, lte, sql, desc,  ne } from 'drizzle-orm';
+import { eq, inArray, and, gte, lte, sql, desc,  ne} from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core'; // ✅ Import alias from pg-core
+
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { drizzle } from 'drizzle-orm/postgres-js';
@@ -9,7 +11,9 @@ import { profiles, notifications, payments, reports, withdrawals,
    userBankDetails,  withdrawSettings, withdrawalRequests, referralSettings, 
    platforms,
    systemSettings,
-   dailyVideos} from './db/schema';
+   dailyVideos,
+   globalNotifications,
+   stories} from './db/schema';
 
    // ✅ ADD THIS NEW HELPER FUNCTION HERE
 function getDb(databaseUrl: string) {
@@ -633,7 +637,7 @@ app.get('/api/super-admin/referrals', async (c) => {
       }
     });
 
-    // ✅ 3. Fetch all active user jobs with job names
+    // 3. Fetch all active user jobs with job names
     const userJobsData = await db.select({
       userId: userJobs.userId,
       jobName: jobs.name
@@ -641,7 +645,6 @@ app.get('/api/super-admin/referrals', async (c) => {
     .from(userJobs)
     .leftJoin(jobs, eq(userJobs.jobId, jobs.id));
     
-    // Create a map for quick lookup: { userId: "Job Name" }
     const userJobMap: Record<string, string> = {};
     userJobsData.forEach(uj => {
       userJobMap[uj.userId] = uj.jobName || 'Unknown Job';
@@ -654,13 +657,13 @@ app.get('/api/super-admin/referrals', async (c) => {
       phone: p.phone,
       createdAt: p.createdAt,
       invitedCount: inviteCounts[p.id] || 0,
-      jobLevel: userJobMap[p.id] || 'No Job' // ✅ Add Job Level
+      jobLevel: userJobMap[p.id] || 'No Job'
     }));
 
-    // 5. Filter: Keep if they have invites > 0 OR they have bought a job
-    inviters = inviters.filter(u => u.invitedCount > 0 || u.jobLevel !== 'No Job');
+    // ✅ REMOVED THE FILTER HERE
+    // Now everyone (even 0 invites) will be returned to the frontend
 
-    // 6. Sort by most invites
+    // 5. Sort by most invites
     inviters.sort((a, b) => b.invitedCount - a.invitedCount);
 
     return c.json({ success: true, referrals: inviters }, 200);
@@ -1936,16 +1939,17 @@ app.post('/api/user/:id/withdraw', async (c) => {
 
   try {
     // ✅ 1. TIME RESTRICTION CHECK (8 AM to 4 PM)
-    const now = new Date();
-    const currentHour = now.getHours(); // Gets local server PC hour
+   // ✅ NEW (Forces Ethiopian Time UTC+3)
+const now = new Date();
+const ethiopianHour = (now.getUTCHours() + 3) % 24;
 
-    // Allowed if hour is >= 8 (8 AM) AND < 16 (4 PM)
-    if (currentHour < 8 || currentHour >= 16) {
-      return c.json({ 
-        success: false, 
-        error: 'Withdrawals are currently closed. Open daily from 8:00 AM to 4:00 PM.' 
-      }, 403);
-    }
+// Allow only between 8:00 AM and 3:59 PM
+if (ethiopianHour < 8 || ethiopianHour >= 16) {
+  return c.json({ 
+    success: false, 
+    error: 'Withdrawals are currently closed. Open daily from 8:00 AM to 4:00 PM.' 
+  }, 403);
+}
 
     // ... (rest of the code remains exactly the same)
 
@@ -2007,24 +2011,29 @@ app.get('/api/user/:id/my-withdrawals', async (c) => {
 app.get('/api/admin/withdrawals', async (c) => {
   try {
     const db = getDb(c.env.DATABASE_URL);
-    
+    const lockerProfile = alias(profiles, 'locker');
+
     const requests = await db
       .select({
         id: withdrawalRequests.id,
         amountRequested: withdrawalRequests.amountRequested,
-        taxAmount: withdrawalRequests.taxAmount,
         amountToReceive: withdrawalRequests.amountToReceive,
         status: withdrawalRequests.status,
         bankDetailsSnapshot: withdrawalRequests.bankDetailsSnapshot,
-        rejectionReason: withdrawalRequests.rejectionReason, // ✅ Added
+        rejectionReason: withdrawalRequests.rejectionReason,
+        approvedBy: withdrawalRequests.approvedBy,
+        lockedBy: withdrawalRequests.lockedBy,
+        lockedAt: withdrawalRequests.lockedAt,
+        lockedByName: lockerProfile.name,
         createdAt: withdrawalRequests.createdAt,
-        updatedAt: withdrawalRequests.updatedAt,             // ✅ Added
+        updatedAt: withdrawalRequests.updatedAt,
         userId: withdrawalRequests.userId,
         userName: profiles.name,
         userPhone: profiles.phone,
       })
       .from(withdrawalRequests)
       .leftJoin(profiles, eq(withdrawalRequests.userId, profiles.id))
+      .leftJoin(lockerProfile, eq(withdrawalRequests.lockedBy, lockerProfile.id))
       .orderBy(desc(withdrawalRequests.createdAt));
 
     return c.json({ success: true, requests }, 200);
@@ -2402,6 +2411,106 @@ app.delete('/api/super-admin/daily-videos/:id', async (c) => {
     const db = getDb(c.env.DATABASE_URL);
     await db.delete(dailyVideos).where(eq(dailyVideos.id, id));
     return c.json({ success: true, message: 'Video deleted' }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// ==========================================
+// STORIES & NOTIFICATIONS MODULE
+// ==========================================
+
+// Admin: Create Story
+app.post('/api/super-admin/stories', async (c) => {
+  try {
+    const { titleAm, titleEn, contentAm, contentEn, imageUrl } = await c.req.json();
+    const db = getDb(c.env.DATABASE_URL);
+    const newStory = await db.insert(stories).values({ titleAm, titleEn, contentAm, contentEn, imageUrl }).returning();
+    return c.json({ success: true, story: newStory[0] }, 201);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Admin: Delete Story
+app.delete('/api/super-admin/stories/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const db = getDb(c.env.DATABASE_URL);
+    await db.delete(stories).where(eq(stories.id, id));
+    return c.json({ success: true, message: 'Story deleted' }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Public: Get All Stories
+app.get('/api/stories', async (c) => {
+  try {
+    const db = getDb(c.env.DATABASE_URL);
+    const allStories = await db.select().from(stories).orderBy(desc(stories.createdAt));
+    return c.json({ success: true, stories: allStories }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Admin: Create Global Notification
+app.post('/api/super-admin/notifications', async (c) => {
+  try {
+    const { titleAm, titleEn, contentAm, contentEn, expiresAt } = await c.req.json();
+    const db = getDb(c.env.DATABASE_URL);
+    const newNotif = await db.insert(globalNotifications).values({ 
+      titleAm, titleEn, contentAm, contentEn, expiresAt: new Date(expiresAt) 
+    }).returning();
+    return c.json({ success: true, notification: newNotif[0] }, 201);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Public: Get Active Notification (If any)
+app.get('/api/active-notification', async (c) => {
+  try {
+    const db = getDb(c.env.DATABASE_URL);
+    const now = new Date();
+    
+    // Get the latest notification that hasn't expired yet
+    const active = await db.select().from(globalNotifications)
+      .where(gte(globalNotifications.expiresAt, now))
+      .orderBy(desc(globalNotifications.createdAt))
+      .limit(1);
+
+    return c.json({ success: true, notification: active[0] || null }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+app.post('/api/admin/withdrawals/:id/lock', async (c) => {
+  const id = c.req.param('id');
+  const { adminId } = await c.req.json();
+  const db = getDb(c.env.DATABASE_URL);
+
+  try {
+    const request = (await db.select().from(withdrawalRequests).where(eq(withdrawalRequests.id, id)).limit(1))[0];
+    if (!request) return c.json({ success: false, error: 'Not found' }, 404);
+    if (request.status !== 'pending') return c.json({ success: false, error: 'Request already processed' }, 400);
+
+    // ✅ Changed to 1 minute
+    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);
+    
+    if (request.lockedBy && request.lockedBy !== adminId && request.lockedAt && new Date(request.lockedAt) > oneMinuteAgo) {
+      const locker = (await db.select().from(profiles).where(eq(profiles.id, request.lockedBy)).limit(1))[0];
+      return c.json({ success: false, error: `Currently being reviewed by ${locker?.name || 'another admin'}` }, 403);
+    }
+
+    // Lock it (or overwrite the expired lock)
+    await db.update(withdrawalRequests)
+      .set({ lockedBy: adminId, lockedAt: new Date() })
+      .where(eq(withdrawalRequests.id, id));
+
+    return c.json({ success: true });
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }

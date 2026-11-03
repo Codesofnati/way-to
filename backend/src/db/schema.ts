@@ -218,6 +218,8 @@ export const withdrawalRequests = pgTable('withdrawal_requests', {
   bankDetailsSnapshot: text('bank_details_snapshot').notNull(), // Save their bank info at time of request
   approvedBy: uuid('approved_by'), // ✅ NEW: Tracks which admin processed it
   rejectionReason: text('rejection_reason'), // ✅ Added
+  lockedBy: uuid('locked_by'),          // ✅ Who opened it
+  lockedAt: timestamp('locked_at'),     // ✅ When they opened it
   updatedAt: timestamp('updated_at').defaultNow().notNull(), // ✅ Ensure this exists
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -246,5 +248,27 @@ export const dailyVideos = pgTable('daily_videos', {
   scheduledDate: text('scheduled_date').notNull(), // "YYYY-MM-DD"
   isActive: boolean('is_active').default(true).notNull(),
   requiresSubscription: boolean('requires_subscription').default(false).notNull(), 
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ✅ 1. Company Stories (Home Feed)
+export const stories = pgTable('stories', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  titleAm: text('title_am').notNull(),
+  titleEn: text('title_en').notNull(),
+  contentAm: text('content_am').notNull(),
+  contentEn: text('content_en').notNull(),
+  imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ✅ 2. Global Popup Notifications
+export const globalNotifications = pgTable('global_notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  titleAm: text('title_am').notNull(),
+  titleEn: text('title_en').notNull(),
+  contentAm: text('content_am').notNull(),
+  contentEn: text('content_en').notNull(),
+  expiresAt: timestamp('expires_at').notNull(), // When it should stop showing
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

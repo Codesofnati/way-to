@@ -277,12 +277,12 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {performanceData.map(admin => (
               <div key={admin.adminId} className="bg-[#0B0F19] p-5 rounded-2xl border border-gray-800">
-                <p className="font-bold text-white mb-4 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[#B519FF]/20 text-[#B519FF] flex items-center justify-center text-xs font-black">
-                    {admin.adminName.charAt(0).toUpperCase()}
-                  </div>
-                  {admin.adminName}
-                </p>
+                <div className="font-bold text-white mb-4 flex items-center gap-2">
+  <div className="w-6 h-6 rounded-full bg-[#B519FF]/20 text-[#B519FF] flex items-center justify-center text-xs font-black">
+    {admin.adminName.charAt(0).toUpperCase()}
+  </div>
+  {admin.adminName}
+</div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-[#131825] p-2 rounded-lg border border-gray-800">
                     <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Daily</p>
@@ -478,11 +478,18 @@ export default function AdminPayments({ params }: { params: Promise<{ locale: st
                 </div>
               </div>
 
-              <div>
-                <a href={selectedPayment.screenshotUrl} target="_blank" rel="noreferrer" className="block w-full text-center bg-[#0B0F19] border border-gray-700 text-gray-300 py-3 rounded-xl font-bold hover:bg-gray-800 hover:text-white transition">
-                  View Screenshot Proof ↗
-                </a>
-              </div>
+           {selectedPayment.screenshotUrl && (
+  <div className="border-t border-gray-800 pt-5">
+    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-3">Payment Proof (Screenshot)</p>
+    <a href={selectedPayment.screenshotUrl} target="_blank" rel="noreferrer">
+      <img 
+        src={selectedPayment.screenshotUrl} 
+        alt="Screenshot" 
+        className="w-full rounded-xl border border-gray-700 object-contain max-h-80 bg-black hover:opacity-80 transition" 
+      />
+    </a>
+  </div>
+)}
             </div>
 
             <div className="p-6 bg-[#0B0F19] border-t border-gray-800">
