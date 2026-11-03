@@ -13,7 +13,8 @@ import { profiles, notifications, payments, reports, withdrawals,
    systemSettings,
    dailyVideos,
    globalNotifications,
-   stories} from './db/schema';
+   stories,
+   appSettings} from './db/schema';
 
    // ✅ ADD THIS NEW HELPER FUNCTION HERE
 function getDb(databaseUrl: string) {
@@ -2511,6 +2512,85 @@ app.post('/api/admin/withdrawals/:id/lock', async (c) => {
       .where(eq(withdrawalRequests.id, id));
 
     return c.json({ success: true });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+
+app.get('/api/app-settings', async (c) => {
+  try {
+    const db = getDb(c.env.DATABASE_URL);
+    let settings = (await db.select().from(appSettings).limit(1))[0];
+    
+    if (!settings) {
+      // Create default if doesn't exist
+      settings = (await db.insert(appSettings).values({ id: 'global' }).returning())[0];
+    }
+    
+    return c.json({ 
+      success: true, 
+      settings: {
+        profitImages: JSON.parse(settings.profitImages),
+        vipImage: settings.vipImage
+      } 
+    }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Update Settings
+app.put('/api/super-admin/app-settings', async (c) => {
+  try {
+    const { profitImages, vipImage } = await c.req.json();
+    const db = getDb(c.env.DATABASE_URL);
+    
+    const existing = await db.select().from(appSettings).limit(1);
+    
+    if (existing.length > 0) {
+      await db.update(appSettings)
+        .set({ profitImages: JSON.stringify(profitImages), vipImage, updatedAt: new Date() })
+        .where(eq(appSettings.id, 'global'));
+    } else {
+      await db.insert(appSettings).values({ 
+        id: 'global', 
+        profitImages: JSON.stringify(profitImages), 
+        vipImage 
+      });
+    }
+    
+    return c.json({ success: true, message: 'Images updated successfully' }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Edit a Story
+app.put('/api/super-admin/stories/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const { titleAm, titleEn, contentAm, contentEn, imageUrl } = await c.req.json();
+    const db = getDb(c.env.DATABASE_URL);
+
+    const updated = await db.update(stories)
+      .set({ titleAm, titleEn, contentAm, contentEn, imageUrl })
+      .where(eq(stories.id, id))
+      .returning();
+
+    return c.json({ success: true, story: updated[0] }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Delete a Story (Ensure this is in your backend)
+app.delete('/api/super-admin/stories/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const db = getDb(c.env.DATABASE_URL);
+    await db.delete(stories).where(eq(stories.id, id));
+    return c.json({ success: true, message: 'Story deleted' }, 200);
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }

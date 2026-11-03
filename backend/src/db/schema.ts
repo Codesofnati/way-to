@@ -272,3 +272,11 @@ export const globalNotifications = pgTable('global_notifications', {
   expiresAt: timestamp('expires_at').notNull(), // When it should stop showing
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// ✅ NEW: Dynamic App Settings (Profit & VIP images)
+export const appSettings = pgTable('app_settings', {
+  id: text('id').primaryKey().default('global'),
+  profitImages: text('profit_images').default('[]').notNull(), // JSON array of URLs
+  vipImage: text('vip_image').default('').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

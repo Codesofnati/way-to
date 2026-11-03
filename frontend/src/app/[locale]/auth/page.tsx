@@ -79,7 +79,7 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
         }
         
         localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = `/${locale}/dashboard`;
+        window.location.href = `/${locale}/home`;
       } else {
         alert(isAmharic ? 'በተሳካ ሁኔታ ተመዝግበዋል! አሁን ይግቡ' : 'Registered successfully! Please login.');
         setIsSignup(false);

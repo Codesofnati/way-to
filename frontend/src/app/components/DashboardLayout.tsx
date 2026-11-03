@@ -77,6 +77,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (userRole === 'super_admin') {
     adminNavItems = [
       { name: 'Overview Analytics', path: `/${currentLocale}/admin/super-dashboard`, icon: icons.dashboard },
+      { name: 'App Images', path: `/${currentLocale}/admin/app-settings`, icon: icons.settings },
+      { name: 'Home stories', path: `/${currentLocale}/admin/stories`, icon: icons.settings },
       { name: 'Manage Admins', path: `/${currentLocale}/admin/manage-admins`, icon: icons.users },
       { name: 'User Moderation', path: `/${currentLocale}/admin/user-moderation`, icon: icons.users },
       { name: 'Payment Approvals', path: `/${currentLocale}/admin/payments`, icon: icons.money },
