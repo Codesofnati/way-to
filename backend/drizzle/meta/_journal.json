@@ -232,6 +232,13 @@
       "when": 1793695132550,
       "tag": "0032_glorious_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793697944458,
+      "tag": "0033_spicy_nighthawk",
+      "breakpoints": true
     }
   ]
 }

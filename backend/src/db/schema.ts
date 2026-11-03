@@ -269,7 +269,8 @@ export const globalNotifications = pgTable('global_notifications', {
   titleEn: text('title_en').notNull(),
   contentAm: text('content_am').notNull(),
   contentEn: text('content_en').notNull(),
-  expiresAt: timestamp('expires_at').notNull(), // When it should stop showing
+  imageUrl: text('image_url'), // ✅ Add this line
+  expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

@@ -2459,13 +2459,14 @@ app.get('/api/stories', async (c) => {
 // Admin: Create Global Notification
 app.post('/api/super-admin/notifications', async (c) => {
   try {
-    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl } = await c.req.json(); // ✅ Ensure imageUrl is extracted
-    
+    // ✅ Make sure imageUrl is extracted here
+    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl } = await c.req.json(); 
     const db = getDb(c.env.DATABASE_URL);
+    
     const newNotif = await db.insert(globalNotifications).values({ 
       titleAm, titleEn, contentAm, contentEn, 
       expiresAt: new Date(expiresAt),
-      imageUrl // ✅ Ensure it's saved
+      imageUrl: imageUrl || null // ✅ Make sure it is saved
     }).returning();
     
     return c.json({ success: true, notification: newNotif[0] }, 201);

@@ -1,0 +1,1 @@
+ALTER TABLE "global_notifications" ADD COLUMN "image_url" text;
