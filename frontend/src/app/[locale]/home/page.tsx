@@ -79,7 +79,7 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
       
       {/* ✅ NEW: Top Banner Section (Above About Us) */}
       {topBanner && (
-        <div className="mb-6 rounded-3xl overflow-hidden shadow-lg relative min-h-[200px] flex items-end bg-gray-900">
+        <div className="mb-3 rounded-xl overflow-hidden shadow-lg relative min-h-[200px] flex items-end ">
           {topBanner.imageUrl && (
             <img 
               src={topBanner.imageUrl} 
@@ -134,7 +134,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
             <div className='space-y-4'>
               <p className="font-bold text-gray-900 text-base leading-snug">ጉዟችን በካናዳ የተጀመረው በአንድ ቀላል ግን ጥልቅ እውነት ነበር፦ ችሎታና ተሰጥኦ በሁሉም ቦታ ቢኖርም፣ ዕድል ግን ለሁሉም እኩል አይዳረስም።</p>
               <p>በዓለም ላይ እጅግ ከተሳሰሩ የዲጂታል ምጣኔ-ሀብት ማዕከላት በአንዱ ውስጥ ስንኖር፣ የርቀት (የኦንላይን) ሥራ የሰዎችን ኑሮ እንዴት እንደሚቀይር፣ የጊዜ ነፃነትና የገንዘብ ራስን መቻልን እንዴት እንደሚያጎናፅፍ በአካል ተመልክተናል። በሌላ በኩል ደግሞ፣ በመላው ዓለም የሚገኙ በርካታ ብቁ እና ታታሪ ግለሰቦች በመልክዓ-ምድራዊ እና በኢኮኖሚ መሰናክሎች ብቻ ወደኋላ ሲቀሩ አይተናል። ክብር ያለው እና አስተማማኝ ገቢ የማግኘት ዕድል ሰው በተወለደበት የፖስታ ኮድ ወይም አካባቢ መወሰን የለበትም።</p>
-                <p>ቴክኖሎጂ ሰዎችን የሚያራርቅ ሳይሆን ክፍተቶችን የሚያጠብ የእኩልነት ድልድይ መሆን አለበት በሚል ጽኑ እምነት ይህንን ተቋም መሠረትን። ዝቅተኛ ገቢ ያላቸው ታታሪ ዜጎችን ከዓለም አቀፉ የዲጂታል ኢኮኖሚ ጋር እናገናኛለን—ይህም ጊዜያዊ ሥራዎችን በማመቻቸት ብቻ ሳይሆን፣ ዘላቂ የገቢ ምንጭ እንዲፈጥሩ የሚያስችሉ ተግባራዊ ሥልጠናዎችን፣ የዲጂታል መሠረተ-ልማቶችን እና አስተማማኝ የክፍያ ሥርዓቶችን በማቅረብ ነው።</p>
                 
             </div>
           ) : (
@@ -142,7 +141,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
             <p className="font-bold text-gray-900 text-base leading-snug">Our journey began in Canada with a simple realization: while talent is universal, opportunity is not.</p>
 
                <p>Living in one of the most connected digital economies in the world, we saw how remote work transformed lives, offering flexibility and financial independence. At the same time, we saw billions of capable, hardworking individuals around the world held back solely by geographic and economic barriers. Access to dignified, reliable income shouldn’t depend on the postal code you were born in.</p>
-                <p>Driven by the belief that technology should be an equalizer rather than a divider, we set out to build a platform that bridges the gap. We connect determined individuals from low-income communities with the global digital economy—providing not just gig opportunities, but the practical training, digital infrastructure, and reliable payment systems needed to build lasting livelihoods.</p>
                 
             </div>
             
@@ -151,6 +149,7 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
           <div className={`space-y-4 transition-all duration-500 ${isAboutExpanded ? 'block' : 'hidden'}`}>
             {isAmharic ? (
               <>
+                <p>ቴክኖሎጂ ሰዎችን የሚያራርቅ ሳይሆን ክፍተቶችን የሚያጠብ የእኩልነት ድልድይ መሆን አለበት በሚል ጽኑ እምነት ይህንን ተቋም መሠረትን። ዝቅተኛ ገቢ ያላቸው ታታሪ ዜጎችን ከዓለም አቀፉ የዲጂታል ኢኮኖሚ ጋር እናገናኛለን—ይህም ጊዜያዊ ሥራዎችን በማመቻቸት ብቻ ሳይሆን፣ ዘላቂ የገቢ ምንጭ እንዲፈጥሩ የሚያስችሉ ተግባራዊ ሥልጠናዎችን፣ የዲጂታል መሠረተ-ልማቶችን እና አስተማማኝ የክፍያ ሥርዓቶችን በማቅረብ ነው።</p>
                 <p>በካናዳ የተጀመረው ይህ ጥረት ዛሬ ድንበር የለሽ ማህበረሰብ ፈጥሯል፤ ይህም ሰዎች ተገቢውን ዕድል እና መሣሪያ ሲያገኙ ራሳቸውን መመገብ ብቻ ሳይሆን፣ ቤተሰቦቻቸውን እና ማህበረሰባቸውን ከፍ እንደሚያደርጉ በተግባር ያሳያል።</p>
                 <div className="bg-[#F8F9FA] p-5 rounded-2xl border border-gray-100 mt-4">
                   <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
@@ -174,6 +173,7 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
               </>
             ) : (
               <>
+                <p>Driven by the belief that technology should be an equalizer rather than a divider, we set out to build a platform that bridges the gap. We connect determined individuals from low-income communities with the global digital economy—providing not just gig opportunities, but the practical training, digital infrastructure, and reliable payment systems needed to build lasting livelihoods.</p>
                 <p>What started as a Canadian initiative has grown into a borderless community, proving that when people are given the tools to participate, they don’t just earn a living—they lift up their families and transform their communities.</p>
                <div className="bg-[#F8F9FA] p-5 rounded-2xl border border-gray-100 mt-4">
                   <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
@@ -259,7 +259,7 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
           <div className="flex items-center gap-2 mb-4 px-2">
              {/* ✅ Changed to deep blue */}
              <div className="w-1.5 h-4 bg-[#1E4E79] rounded-full"></div>
-             <h2 className="font-bold text-gray-900 text-sm uppercase tracking-widest">Notice to Wayto Users</h2>
+             <h2 className="font-bold text-gray-900 text-sm uppercase tracking-widest">Notice to Welynto Users</h2>
           </div>
 
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

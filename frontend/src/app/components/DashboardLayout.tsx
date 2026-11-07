@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               W
             </div>
             <span className="font-extrabold text-2xl tracking-tight text-white">
-              Way<span className="text-[#B519FF]">to</span>
+              Wely<span className="text-[#B519FF]">nto</span>
             </span>
             <span className="ml-auto text-[10px] uppercase font-bold text-purple-400 bg-purple-400/10 px-2 py-1 rounded-md border border-purple-400/20">
               Admin
@@ -247,7 +247,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <>
           <div className="fixed top-4 right-4 z-50 flex items-center gap-1.5 bg-white shadow-sm border border-gray-100 rounded-2xl px-4 py-2">
             <span className="text-sm font-extrabold tracking-tighter text-gray-900">
-              Way<span className="text-[#1E4E79]">to</span>
+              Wely<span className="text-[#1E4E79]">nto</span>
             </span>
           </div>
 
@@ -291,8 +291,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              </div>
             <span className="text-[10px] font-bold">{isAmharic ? 'የእኔ' : 'Mine'}</span>
           </Link>
-
-         
         </div>
       )}
     </div>
