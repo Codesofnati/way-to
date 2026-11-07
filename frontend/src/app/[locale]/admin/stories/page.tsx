@@ -58,10 +58,15 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
   // --- CREATE STORY ---
   const handleCreateStory = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Ensure at least an image is uploaded
+    if (!storyFile) {
+      return alert("Please upload a story image.");
+    }
+
     setSubmittingStory(true);
     try {
-      let imageUrl = '';
-      if (storyFile) imageUrl = await uploadImage(storyFile);
+      const imageUrl = await uploadImage(storyFile);
 
       const res = await fetch(`${apiUrl}/api/super-admin/stories`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -121,10 +126,10 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
   const openEditModal = (story: any) => {
     setEditingStory(story);
     setEditForm({
-      titleAm: story.titleAm,
-      titleEn: story.titleEn,
-      contentAm: story.contentAm,
-      contentEn: story.contentEn,
+      titleAm: story.titleAm || '',
+      titleEn: story.titleEn || '',
+      contentAm: story.contentAm || '',
+      contentEn: story.contentEn || '',
       imageUrl: story.imageUrl || ''
     });
     setEditFile(null);
@@ -166,14 +171,17 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
           </h2>
           <form onSubmit={handleCreateStory} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <input type="text" placeholder="Title (Am)" value={newStory.titleAm} onChange={e => setNewStory({...newStory, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" required />
-              <input type="text" placeholder="Title (En)" value={newStory.titleEn} onChange={e => setNewStory({...newStory, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" required />
+              {/* ✅ Removed required attribute */}
+              <input type="text" placeholder="Title (Am) - Optional" value={newStory.titleAm} onChange={e => setNewStory({...newStory, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" />
+              <input type="text" placeholder="Title (En) - Optional" value={newStory.titleEn} onChange={e => setNewStory({...newStory, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" />
             </div>
-            <textarea placeholder="Content (Am)" value={newStory.contentAm} onChange={e => setNewStory({...newStory, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24 outline-none focus:border-[#B519FF]" required />
-            <textarea placeholder="Content (En)" value={newStory.contentEn} onChange={e => setNewStory({...newStory, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24 outline-none focus:border-[#B519FF]" required />
+            {/* ✅ Removed required attribute */}
+            <textarea placeholder="Content (Am) - Optional" value={newStory.contentAm} onChange={e => setNewStory({...newStory, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24 outline-none focus:border-[#B519FF]" />
+            <textarea placeholder="Content (En) - Optional" value={newStory.contentEn} onChange={e => setNewStory({...newStory, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24 outline-none focus:border-[#B519FF]" />
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Story Image</label>
-              <input type="file" accept="image/*" onChange={e => setStoryFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF]" />
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Story Image (Required)</label>
+              {/* ✅ Made file input required */}
+              <input type="file" accept="image/*" required onChange={e => setStoryFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF]" />
             </div>
             <button type="submit" disabled={submittingStory} className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
               {submittingStory ? 'Posting...' : 'Post Story'}
@@ -225,9 +233,9 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="font-bold text-white text-sm line-clamp-1">{story.titleEn}</p>
+                  <p className="font-bold text-white text-sm line-clamp-1">{story.titleEn || 'No Title'}</p>
                   <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">{story.titleAm}</p>
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">{story.contentEn}</p>
+                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">{story.contentEn || 'No description'}</p>
                 </div>
                 <div className="flex gap-2 mt-4">
                   <button 
@@ -291,30 +299,44 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
       {viewingStory && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#131825] rounded-3xl border border-gray-700 shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95">
-            <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#0B0F19]">
+            <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#0B0F19] shrink-0">
               <h2 className="text-lg font-bold text-white">View Story</h2>
               <button onClick={() => setViewingStory(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:text-white transition text-xl font-bold">&times;</button>
             </div>
-            <div className="overflow-y-auto custom-scrollbar">
+            
+            {/* ✅ This makes the content scrollable if it's too long */}
+            <div className="overflow-y-auto custom-scrollbar flex-1">
               {viewingStory.imageUrl && (
-                <img src={viewingStory.imageUrl} className="w-full h-56 object-cover" />
+                <img src={viewingStory.imageUrl} className="w-full h-auto object-contain bg-black/20" alt="Story" />
               )}
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-xl font-bold text-white">{viewingStory.titleEn}</h3>
-                  <h4 className="text-sm font-bold text-gray-400 mt-1">{viewingStory.titleAm}</h4>
+              
+              {(viewingStory.titleEn || viewingStory.titleAm || viewingStory.contentEn || viewingStory.contentAm) && (
+                <div className="p-6 space-y-4">
+                  {(viewingStory.titleEn || viewingStory.titleAm) && (
+                    <div>
+                      {viewingStory.titleEn && <h3 className="text-xl font-bold text-white">{viewingStory.titleEn}</h3>}
+                      {viewingStory.titleAm && <h4 className="text-sm font-bold text-gray-400 mt-1">{viewingStory.titleAm}</h4>}
+                    </div>
+                  )}
+                  
+                  {(viewingStory.contentEn || viewingStory.contentAm) && (
+                    <div className="bg-[#0B0F19] p-4 rounded-xl border border-gray-800 space-y-4">
+                      {viewingStory.contentEn && (
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">English Content</p>
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap">{viewingStory.contentEn}</p>
+                        </div>
+                      )}
+                      {viewingStory.contentAm && (
+                        <div className={viewingStory.contentEn ? "border-t border-gray-800 pt-4" : ""}>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Amharic Content</p>
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap">{viewingStory.contentAm}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="bg-[#0B0F19] p-4 rounded-xl border border-gray-800 space-y-4">
-                  <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">English Content</p>
-                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{viewingStory.contentEn}</p>
-                  </div>
-                  <div className="border-t border-gray-800 pt-4">
-                    <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Amharic Content</p>
-                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{viewingStory.contentAm}</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -332,7 +354,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
             <form onSubmit={handleSaveEdit} className="overflow-y-auto custom-scrollbar flex-1">
               <div className="p-6 space-y-4">
                 {editForm.imageUrl && !editFile && (
-                  <img src={editForm.imageUrl} className="w-full h-32 object-cover rounded-xl border border-gray-700" />
+                  <img src={editForm.imageUrl} className="w-full h-auto max-h-48 object-contain rounded-xl border border-gray-700 bg-black/20" />
                 )}
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Change Image (Optional)</label>
@@ -341,22 +363,26 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Title (En)</label>
-                    <input type="text" value={editForm.titleEn} onChange={e => setEditForm({...editForm, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm" required />
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Title (En) - Optional</label>
+                    {/* ✅ Removed required attribute */}
+                    <input type="text" value={editForm.titleEn} onChange={e => setEditForm({...editForm, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Title (Am)</label>
-                    <input type="text" value={editForm.titleAm} onChange={e => setEditForm({...editForm, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm" required />
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Title (Am) - Optional</label>
+                    {/* ✅ Removed required attribute */}
+                    <input type="text" value={editForm.titleAm} onChange={e => setEditForm({...editForm, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Content (En)</label>
-                  <textarea value={editForm.contentEn} onChange={e => setEditForm({...editForm, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24" required />
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Content (En) - Optional</label>
+                  {/* ✅ Removed required attribute */}
+                  <textarea value={editForm.contentEn} onChange={e => setEditForm({...editForm, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Content (Am)</label>
-                  <textarea value={editForm.contentAm} onChange={e => setEditForm({...editForm, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24" required />
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Content (Am) - Optional</label>
+                  {/* ✅ Removed required attribute */}
+                  <textarea value={editForm.contentAm} onChange={e => setEditForm({...editForm, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24" />
                 </div>
               </div>
               

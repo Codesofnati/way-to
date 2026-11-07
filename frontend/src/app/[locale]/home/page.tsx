@@ -113,7 +113,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
           className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition"
         >
           <div className="flex items-center gap-4">
-            {/* ✅ Changed to deep blue */}
             <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#1E4E79] shadow-inner">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
@@ -134,16 +133,12 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
             <div className='space-y-4'>
               <p className="font-bold text-gray-900 text-base leading-snug">ጉዟችን በካናዳ የተጀመረው በአንድ ቀላል ግን ጥልቅ እውነት ነበር፦ ችሎታና ተሰጥኦ በሁሉም ቦታ ቢኖርም፣ ዕድል ግን ለሁሉም እኩል አይዳረስም።</p>
               <p>በዓለም ላይ እጅግ ከተሳሰሩ የዲጂታል ምጣኔ-ሀብት ማዕከላት በአንዱ ውስጥ ስንኖር፣ የርቀት (የኦንላይን) ሥራ የሰዎችን ኑሮ እንዴት እንደሚቀይር፣ የጊዜ ነፃነትና የገንዘብ ራስን መቻልን እንዴት እንደሚያጎናፅፍ በአካል ተመልክተናል። በሌላ በኩል ደግሞ፣ በመላው ዓለም የሚገኙ በርካታ ብቁ እና ታታሪ ግለሰቦች በመልክዓ-ምድራዊ እና በኢኮኖሚ መሰናክሎች ብቻ ወደኋላ ሲቀሩ አይተናል። ክብር ያለው እና አስተማማኝ ገቢ የማግኘት ዕድል ሰው በተወለደበት የፖስታ ኮድ ወይም አካባቢ መወሰን የለበትም።</p>
-                
             </div>
           ) : (
             <div className='space-y-4'>
             <p className="font-bold text-gray-900 text-base leading-snug">Our journey began in Canada with a simple realization: while talent is universal, opportunity is not.</p>
-
                <p>Living in one of the most connected digital economies in the world, we saw how remote work transformed lives, offering flexibility and financial independence. At the same time, we saw billions of capable, hardworking individuals around the world held back solely by geographic and economic barriers. Access to dignified, reliable income shouldn’t depend on the postal code you were born in.</p>
-                
             </div>
-            
           )}
           
           <div className={`space-y-4 transition-all duration-500 ${isAboutExpanded ? 'block' : 'hidden'}`}>
@@ -153,14 +148,12 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
                 <p>በካናዳ የተጀመረው ይህ ጥረት ዛሬ ድንበር የለሽ ማህበረሰብ ፈጥሯል፤ ይህም ሰዎች ተገቢውን ዕድል እና መሣሪያ ሲያገኙ ራሳቸውን መመገብ ብቻ ሳይሆን፣ ቤተሰቦቻቸውን እና ማህበረሰባቸውን ከፍ እንደሚያደርጉ በተግባር ያሳያል።</p>
                 <div className="bg-[#F8F9FA] p-5 rounded-2xl border border-gray-100 mt-4">
                   <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    {/* ✅ Changed to deep blue */}
                     <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     ተልዕኮ (Mission)
                   </h4>
                   <p className="text-gray-600 mb-4 text-xs leading-relaxed">ዝቅተኛ ገቢ ላላቸው ወገኖች አስፈላጊውን የዲጂታል ክህሎት በማስታጠቅ እና ቀጥታ ተገቢ ክፍያ ካላቸው ዘላቂ የኦንላይን ሥራዎች ጋር በማገናኘት የኢኮኖሚ እንቅፋቶችን ማስወገድ።</p>
                   
                   <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    {/* ✅ Changed to deep blue */}
                     <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     ዋና ዋና እሴቶቻችን
                   </h4>
@@ -177,14 +170,12 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
                 <p>What started as a Canadian initiative has grown into a borderless community, proving that when people are given the tools to participate, they don’t just earn a living—they lift up their families and transform their communities.</p>
                <div className="bg-[#F8F9FA] p-5 rounded-2xl border border-gray-100 mt-4">
                   <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    {/* ✅ Changed to deep blue */}
                     <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     Mission Statement
                   </h4>
                   <p className="text-gray-600 mb-4 text-xs leading-relaxed">To dismantle systemic economic barriers by equipping low-income individuals with digital skills and connecting them directly to sustainable, fair-paying online work.</p>
                   
                   <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    {/* ✅ Changed to deep blue */}
                     <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     Core Values
                   </h4>
@@ -239,7 +230,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
                className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" 
              />
           ) : (
-            /* ✅ Fallback VIP gradient changed to match the deep blue/teal theme */
             <div className="absolute inset-0 bg-gradient-to-br from-[#1E4E79] to-[#15608D]"></div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -257,7 +247,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
       {stories.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4 px-2">
-             {/* ✅ Changed to deep blue */}
              <div className="w-1.5 h-4 bg-[#1E4E79] rounded-full"></div>
              <h2 className="font-bold text-gray-900 text-sm uppercase tracking-widest">Notice to Welynto Users</h2>
           </div>
@@ -277,22 +266,19 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
                       <img src={story.imageUrl} alt="Story" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   ) : (
-                    /* ✅ Changed to deep blue */
                     <div className="w-12 h-12 flex-shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-[#1E4E79]">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
                     </div>
                   )}
                   <div className="flex-1 pr-4">
-                    {/* ✅ Changed hover text color to deep blue */}
                     <h3 className="font-bold text-gray-900 text-base mb-1 group-hover:text-[#1E4E79] transition-colors line-clamp-1">
-                      {isAmharic ? story.titleAm : story.titleEn}
+                      {(isAmharic ? story.titleAm : story.titleEn) || (isAmharic ? 'አዲስ ማስታወቂያ' : 'New Notice')}
                     </h3>
                     <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
-                      {isAmharic ? story.contentAm : story.contentEn}
+                      {(isAmharic ? story.contentAm : story.contentEn) || (isAmharic ? 'ለማንበብ ይጫኑ' : 'Click to view story')}
                     </p>
                   </div>
                 </div>
-                {/* ✅ Changed hover background to deep blue */}
                 <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#1E4E79] transition-colors flex-shrink-0">
                   <svg className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
@@ -302,23 +288,127 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
         </div>
       )}
 
+      {/* ✅ HARDCODED WELYNT0 ADVANTAGES SECTION */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4 px-2">
+          <div className="w-1.5 h-4 bg-[#1E4E79] rounded-full"></div>
+          <h2 className="font-bold text-gray-900 text-sm uppercase tracking-widest">
+            {isAmharic ? 'የዌሊንቶ ጥቅሞች' : 'Welynto Advantages'}
+          </h2>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-6 space-y-6">
+          
+          {/* Item 1 */}
+          <div className="flex gap-4">
+            <div className="w-10 h-10 flex-shrink-0 rounded-full bg-blue-50 text-[#1E4E79] flex items-center justify-center font-bold font-mono">
+              01
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-sm">{isAmharic ? 'ዕለታዊ ተግባራት' : 'Daily Tasks'}</h3>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {isAmharic 
+                  ? 'ዕለታዊ ተግባራትን ይቀበሉ እና የYouTube ቪዲዮ ተግባራትን በማጠናቀቅ ኮሚሽን ያግኙ።' 
+                  : 'Receive daily tasks and earn commissions by completing YouTube video tasks.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Item 2 */}
+          <div className="flex gap-4">
+            <div className="w-10 h-10 flex-shrink-0 rounded-full bg-blue-50 text-[#1E4E79] flex items-center justify-center font-bold font-mono">
+              02
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-sm">{isAmharic ? 'ጋብዝ እና ተጠቀም' : 'Invite & Earn'}</h3>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {isAmharic 
+                  ? 'ሌሎችን የመጋበዝ መብት አለዎት፣ ይህም ተጨማሪ የሥራ ዕድሎችን ይፈጥራል። ሪፈራል ሽልማቶችን ይቀበሉ።' 
+                  : 'Invite others to join, which creates more job opportunities. Receive referral rewards.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Item 3 */}
+          <div className="flex gap-4">
+            <div className="w-10 h-10 flex-shrink-0 rounded-full bg-blue-50 text-[#1E4E79] flex items-center justify-center font-bold font-mono">
+              03
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-sm">{isAmharic ? 'የድጋፍ ቡድን' : 'Support Team'}</h3>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {isAmharic 
+                  ? 'ቡድን ከፈጠሩ በኋላ በWelynto የበይነመረብ ቡድን ቦታዎች ላይ በመመዝገብ ቋሚ ወርሃዊ ደመወዝ ያግኙ።' 
+                  : 'Apply for online team positions with Welynto and receive a fixed monthly salary.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Item 4 */}
+          <div className="flex gap-4">
+            <div className="w-10 h-10 flex-shrink-0 rounded-full bg-blue-50 text-[#1E4E79] flex items-center justify-center font-bold font-mono">
+              04
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-sm">{isAmharic ? 'የፈንድ ምርቶች' : 'Fund Products'}</h3>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                {isAmharic 
+                  ? 'በWelynto የውስጥ ፋይናንሺያል ፈንድ ውስጥ ይሳተፉ እና ተጨማሪ የፋይናንስ ትርፍ ያግኙ።' 
+                  : "Participate in Welynto's internal financial management fund and enjoy additional returns."}
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ✅ NEW: FOOTER SECTION */}
+      <footer className="mt-12 pt-8 pb-4 border-t border-gray-200 flex flex-col items-center text-center">
+        {/* Brand Logo / Name */}
+        <div className="text-2xl font-black text-[#1E4E79] tracking-widest uppercase mb-4">
+          Welynto
+        </div>
+
+        {/* Quick Links (Optional - you can point these to actual pages later) */}
+        <div className="flex gap-4 mb-6 text-sm font-semibold text-gray-500">
+         
+          <a href={`/${locale}/contact`} className="hover:text-[#1E4E79] transition-colors">
+            {isAmharic ? 'ድጋፍ' : 'Support'}
+          </a>
+        </div>
+
+        {/* Copyright */}
+        <p className="text-xs text-gray-400 font-medium">
+          © {new Date().getFullYear()} Welynto. {isAmharic ? 'መብቱ በህግ የተጠበቀ ነው።' : 'All rights reserved.'}
+        </p>
+      </footer>
+      {/* ✅ END OF FOOTER */}
+
       {/* 4. Full Story Modal */}
       {selectedStory && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300">
-            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
-              <h2 className="font-bold text-gray-900 text-lg line-clamp-1">{isAmharic ? selectedStory.titleAm : selectedStory.titleEn}</h2>
-              <button onClick={() => setSelectedStory(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition font-bold">&times;</button>
+            
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white shrink-0">
+              <h2 className="font-bold text-gray-900 text-lg line-clamp-1">
+                {(isAmharic ? selectedStory.titleAm : selectedStory.titleEn) || (isAmharic ? 'ማስታወቂያ' : 'Notice')}
+              </h2>
+              <button onClick={() => setSelectedStory(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition font-bold shrink-0">&times;</button>
             </div>
-            <div className="overflow-y-auto custom-scrollbar">
+            
+            <div className="overflow-y-auto custom-scrollbar flex-1 bg-gray-50">
               {selectedStory.imageUrl && (
-                <img src={selectedStory.imageUrl} alt="Story" className="w-full h-64 object-cover" />
+                <img src={selectedStory.imageUrl} alt="Story" className="w-full h-auto object-contain bg-white" />
               )}
-              <div className="p-6 text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">
-                {isAmharic ? selectedStory.contentAm : selectedStory.contentEn}
-              </div>
+              
+              {(selectedStory.contentAm || selectedStory.contentEn) && (
+                <div className="p-6 text-gray-700 whitespace-pre-wrap leading-relaxed text-sm bg-white mt-2 border-t border-gray-100">
+                  {isAmharic ? selectedStory.contentAm : selectedStory.contentEn}
+                </div>
+              )}
             </div>
-            <div className="p-4 bg-gray-50 border-t border-gray-100">
+
+            <div className="p-4 bg-white border-t border-gray-100 shrink-0">
               <button onClick={() => setSelectedStory(null)} className="w-full bg-[#1E4E79] text-white py-3 rounded-2xl font-bold hover:bg-[#153a5b] transition shadow-md">Close</button>
             </div>
           </div>
@@ -395,7 +485,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
                   </p>
                 )}
                 
-                {/* ✅ Changed button color to deep blue gradient */}
                 <button onClick={dismissNotif} className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white py-3.5 rounded-xl font-bold hover:opacity-95 transition shadow-lg active:scale-95">
                   {currentNotifIndex < activeNotifs.length - 1 
                     ? (isAmharic ? 'ቀጣይ' : 'Next Notice') 
@@ -406,7 +495,6 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
 
             {!(currentNotif.titleEn || currentNotif.contentEn || currentNotif.titleAm || currentNotif.contentAm) && (
               <div className="p-4 bg-white">
-                {/* ✅ Changed button color to deep blue gradient */}
                 <button onClick={dismissNotif} className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white py-3.5 rounded-xl font-bold hover:opacity-95 transition shadow-lg active:scale-95">
                   {currentNotifIndex < activeNotifs.length - 1 
                     ? (isAmharic ? 'ቀጣይ' : 'Next Notice') 
