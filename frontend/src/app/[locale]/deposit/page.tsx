@@ -120,7 +120,7 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
   if (!userData) return <div className="p-8 text-center text-red-600">{isAmharic ? 'ውሂብ መጫን አልተቻለም።' : 'Failed to load data.'}</div>;
@@ -130,9 +130,9 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
   return (
     <div className="space-y-8 max-w-3xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Updated Decorative Background Blur */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10">
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">
@@ -143,12 +143,12 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
         </p>
       </div>
 
-      {/* Balance Header */}
-      <div className="bg-gradient-to-br from-black to-gray-800 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
+      {/* ✅ Balance Header Updated to Deep Blue Gradient */}
+      <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
         
         <div className="relative z-10">
-          <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
+          <p className="text-xs text-blue-100 uppercase font-bold tracking-wider mb-1">
             {isAmharic ? 'የአሁኑ ቀሪ ሂሳብ' : 'Current Balance'}
           </p>
           <h2 className="text-5xl font-black tracking-tight">ETB {userData.user.walletBalance}</h2>
@@ -165,7 +165,7 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
             <select 
               value={depositData.methodId} 
               onChange={e => setDepositData({...depositData, methodId: e.target.value})} 
-              className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" 
+              className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
               required
             >
               <option value="" disabled className="text-gray-400">{isAmharic ? 'የክፍያ ዘዴ ይምረጡ...' : 'Select a payment method...'}</option>
@@ -174,18 +174,19 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
           </div>
 
           {selectedMethod && (
-            <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              <p className="text-xs text-[#B519FF] font-bold uppercase tracking-wider flex items-center gap-1.5 mb-3">
+            /* ✅ Updated to Deep Blue tint */
+            <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <p className="text-xs text-[#1E4E79] font-bold uppercase tracking-wider flex items-center gap-1.5 mb-3">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 {isAmharic ? 'ክፍያ ይላኩለት:' : 'Send Payment To:'}
               </p>
-              <div className="flex justify-between items-center border-b border-purple-200/50 pb-2">
+              <div className="flex justify-between items-center border-b border-blue-200/50 pb-2">
                  <p className="text-sm font-medium text-gray-600">{isAmharic ? 'የሂሳብ ስም' : 'Account Name'}</p>
                  <p className="text-sm font-bold text-gray-900">{selectedMethod.accountName}</p>
               </div>
               <div className="flex justify-between items-center pt-1">
                  <p className="text-sm font-medium text-gray-600">{isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}</p>
-                 <p className="text-lg font-mono font-bold text-[#B519FF] tracking-wide">{selectedMethod.accountNumber}</p>
+                 <p className="text-lg font-mono font-bold text-[#1E4E79] tracking-wide">{selectedMethod.accountNumber}</p>
               </div>
             </div>
           )}
@@ -194,17 +195,17 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
             <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
               {isAmharic ? 'መጠን (ETB)' : 'Amount (ETB)'}
             </label>
-            <input type="number" placeholder={isAmharic ? 'ለምሳሌ 500' : 'e.g. 500'} value={depositData.amount} onChange={e => setDepositData({...depositData, amount: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" required />
+            <input type="number" placeholder={isAmharic ? 'ለምሳሌ 500' : 'e.g. 500'} value={depositData.amount} onChange={e => setDepositData({...depositData, amount: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" required />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
               {isAmharic ? 'የግብይት ቁጥር (FT)' : 'FT Number (Transaction ID)'}
             </label>
-            <input type="text" placeholder={isAmharic ? 'ለምሳሌ FT123456789' : 'e.g. FT123456789'} value={depositData.ft} onChange={e => setDepositData({...depositData, ft: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" required />
+            <input type="text" placeholder={isAmharic ? 'ለምሳሌ FT123456789' : 'e.g. FT123456789'} value={depositData.ft} onChange={e => setDepositData({...depositData, ft: e.target.value})} className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" required />
           </div>
 
-          {/* ✅ File Upload Input */}
+          {/* ✅ File Upload Input - Updated colors */}
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
               {isAmharic ? 'የክፍያ ማረጋገጫ (ስክሪንሾት)' : 'Payment Screenshot'}
@@ -213,12 +214,13 @@ export default function UserDeposit({ params }: { params: Promise<{ locale: stri
               type="file" 
               accept="image/*" 
               onChange={e => setFile(e.target.files?.[0] || null)} 
-              className="w-full p-3 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF] hover:file:bg-[#B519FF]/20 focus:outline-none focus:ring-2 focus:ring-[#B519FF]" 
+              className="w-full p-3 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#1E4E79]/10 file:text-[#1E4E79] hover:file:bg-[#1E4E79]/20 focus:outline-none focus:ring-2 focus:ring-[#1E4E79]" 
               required 
             />
           </div>
 
-          <button type="submit" disabled={submitting || !depositData.methodId || !file} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4">
+          {/* ✅ Submit Button Updated to Deep Blue Gradient */}
+          <button type="submit" disabled={submitting || !depositData.methodId || !file} className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-4 rounded-2xl font-bold hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4">
             {submitting ? (isAmharic ? 'በመላክ ላይ...' : 'Uploading & Submitting...') : (isAmharic ? 'ማስገቢያ አስገባ' : 'Submit Deposit')}
           </button>
         </form>

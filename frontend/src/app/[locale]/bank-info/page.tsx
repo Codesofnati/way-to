@@ -54,21 +54,23 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center justify-center pt-6">
         <div className="relative">
-          <div className="absolute inset-0 bg-[#B519FF] blur-xl opacity-40 rounded-[1.5rem]"></div>
-          <div className="w-20 h-20 bg-gradient-to-tr from-[#B519FF] to-purple-400 rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
+          {/* ✅ Glow updated to deep blue */}
+          <div className="absolute inset-0 bg-[#1E4E79] blur-xl opacity-40 rounded-[1.5rem]"></div>
+          {/* ✅ Updated gradient & icon style */}
+          <div className="w-20 h-20 bg-gradient-to-tr from-[#1E4E79] to-[#15608D] rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
           </div>
         </div>
@@ -82,17 +84,18 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
 
       {myBankDetails ? (
         /* ✅ VIEW MODE (Locked) */
-        <div className="bg-white/80 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-emerald-100 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-white/80 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-blue-100 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           
           <div className="flex items-center justify-center flex-col gap-3 mb-8">
-            <div className="w-16 h-16 bg-gradient-to-tr from-emerald-400 to-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            {/* ✅ Updated success check to deep blue gradient */}
+            <div className="w-16 h-16 bg-gradient-to-tr from-[#1E4E79] to-[#15608D] text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-900/30">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-900">
                 {isAmharic ? 'የባንክ መረጃ ተቀምጧል' : 'Bank Information Saved'}
               </h2>
-              <p className="text-sm text-emerald-600 font-bold uppercase tracking-wider mt-1">
+              <p className="text-sm text-[#1E4E79] font-bold uppercase tracking-wider mt-1">
                 {isAmharic ? 'የተረጋገጠ እና የተቆለፈ' : 'Verified & Locked'}
               </p>
             </div>
@@ -102,7 +105,8 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
             <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 col-span-1 md:col-span-2">
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የባንክ ስም' : 'Bank Name'}</p>
               <p className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                <svg className="w-5 h-5 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                {/* ✅ Updated icon color to deep blue */}
+                <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 {myBankDetails.bankName}
               </p>
             </div>
@@ -110,9 +114,10 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የሂሳብ ባለቤት ስም' : 'Account Holder Name'}</p>
               <p className="font-bold text-gray-900">{myBankDetails.accountHolderName}</p>
             </div>
-            <div className="bg-purple-50/80 p-4 rounded-2xl border border-purple-100">
-              <p className="text-[10px] text-[#B519FF] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}</p>
-              <p className="font-mono font-black text-[#B519FF] text-lg tracking-wider">{myBankDetails.accountNumber}</p>
+            {/* ✅ Updated account number box to deep blue */}
+            <div className="bg-blue-50/80 p-4 rounded-2xl border border-blue-100">
+              <p className="text-[10px] text-[#1E4E79] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}</p>
+              <p className="font-mono font-black text-[#1E4E79] text-lg tracking-wider">{myBankDetails.accountNumber}</p>
             </div>
           </div>
 
@@ -137,13 +142,14 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-2 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                {/* ✅ Updated icon colors to deep blue */}
+                <svg className="w-4 h-4 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 {isAmharic ? 'ባንክ ይምረጡ' : 'Choose Bank'}
               </label>
               <select 
                 value={formData.bankId} 
                 onChange={e => setFormData({...formData, bankId: e.target.value})} 
-                className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all"
+                className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all"
                 required
               >
                 <option value="" disabled className="text-gray-400">{isAmharic ? 'ባንክ ይምረጡ...' : 'Select a bank...'}</option>
@@ -155,7 +161,7 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-2 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <svg className="w-4 h-4 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 {isAmharic ? 'የሂሳብ ባለቤት ስም' : 'Account Holder Name'}
               </label>
               <input 
@@ -163,14 +169,14 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
                 value={formData.accountHolderName} 
                 onChange={e => setFormData({...formData, accountHolderName: e.target.value})} 
                 placeholder={isAmharic ? 'በባንክ ሂሳብ ላይ ያለው ትክክለኛ ስም' : 'Exact name on bank account'}
-                className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" 
+                className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
                 required
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-2 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path></svg>
+                <svg className="w-4 h-4 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path></svg>
                 {isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}
               </label>
               <input 
@@ -178,15 +184,16 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
                 value={formData.accountNumber} 
                 onChange={e => setFormData({...formData, accountNumber: e.target.value})} 
                 placeholder={isAmharic ? 'የባንክ ሂሳብ ቁጥርዎ' : 'Your bank account number'}
-                className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" 
+                className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
                 required
               />
             </div>
 
+            {/* ✅ Updated submit button to deep blue gradient */}
             <button 
               type="submit" 
               disabled={submitting} 
-              className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-4 rounded-2xl font-bold hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-4 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

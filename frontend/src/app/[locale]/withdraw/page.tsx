@@ -88,7 +88,7 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
@@ -100,9 +100,9 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
@@ -114,19 +114,19 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
           </p>
         </div>
 
-        {/* Time Restriction Banner */}
+        {/* ✅ Time Restriction Banner - Updated Open state to Deep Blue */}
         <div className={`p-4 rounded-2xl border font-bold text-sm flex items-center gap-2 w-full md:w-auto ${
-          isTimeAllowed ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700' : 'bg-red-50/80 border-red-200 text-red-700'
+          isTimeAllowed ? 'bg-blue-50/80 border-blue-200 text-[#1E4E79]' : 'bg-red-50/80 border-red-200 text-red-700'
         }`}>
-          <div className={`w-2 h-2 rounded-full ${isTimeAllowed ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+          <div className={`w-2 h-2 rounded-full ${isTimeAllowed ? 'bg-[#1E4E79] animate-pulse' : 'bg-red-500'}`}></div>
           {timeMessage}
         </div>
       </div>
 
-      {/* Main Balance */}
-      <div className="bg-gradient-to-br from-black to-gray-800 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
-        <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
+      {/* ✅ Main Balance - Updated to Deep Blue Gradient */}
+      <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
+        <p className="text-xs text-blue-100 uppercase font-bold tracking-wider mb-1">
           {isAmharic ? 'ያለዎት ቀሪ ሂሳብ' : 'Available Balance'}
         </p>
         <h2 className="text-4xl font-black tracking-tight">ETB {userData?.user?.walletBalance || '0.00'}</h2>
@@ -160,8 +160,9 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
           {/* Request Form */}
           <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              {/* ✅ Updated icon background to deep blue */}
+              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               </div>
               {isAmharic ? 'መጠን ይምረጡ' : 'Select Amount'}
             </h2>
@@ -176,8 +177,8 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
                     !isTimeAllowed 
                       ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50' 
                       : selectedAmount === amount 
-                        ? 'border-[#B519FF] bg-purple-50 text-[#B519FF] shadow-sm transform scale-105' 
-                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-[#B519FF]/50 hover:bg-white'
+                        ? 'border-[#1E4E79] bg-blue-50 text-[#1E4E79] shadow-sm transform scale-105' 
+                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-[#1E4E79]/50 hover:bg-white'
                   }`}
                 >
                   ETB {amount}
@@ -197,18 +198,20 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
                 </div>
                 <div className="border-t border-gray-200 pt-3 flex justify-between">
                   <span className="font-bold text-gray-900">{isAmharic ? 'የሚቀበሉት' : 'You Will Receive'}</span>
-                  <span className="font-black text-emerald-600 text-lg">ETB {receiveAmount}</span>
+                  {/* ✅ Updated final receive amount to deep blue */}
+                  <span className="font-black text-[#1E4E79] text-lg">ETB {receiveAmount}</span>
                 </div>
               </div>
             )}
 
+            {/* ✅ Updated submit button to deep blue */}
             <button 
               onClick={handleRequest}
               disabled={!selectedAmount || submitting || !isTimeAllowed || parseFloat(userData?.user?.walletBalance || '0') < selectedAmount}
               className={`w-full p-4 rounded-2xl font-bold transition-all ${
                 !isTimeAllowed 
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                  : 'bg-[#B519FF] text-white hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none'
+                  : 'bg-[#1E4E79] text-white hover:bg-[#15608D] hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none'
               }`}
             >
               {submitting 

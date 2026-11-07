@@ -107,16 +107,16 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
@@ -127,19 +127,17 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
             {isAmharic ? 'ገንዘብዎን ያሳድጉ።' : 'Grow your money with our premium plans.'}
           </p>
         </div>
-
-       
       </div>
 
-      {/* Tabs */}
+      {/* ✅ Tabs - Updated active state to Deep Blue */}
       <div className="bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-gray-100 inline-flex w-full md:w-auto relative z-10">
-        <button onClick={() => setActiveTab('available')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'available' ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
+        <button onClick={() => setActiveTab('available')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'available' ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
           {isAmharic ? 'ያሉ እቅዶች' : 'Available Plans'}
         </button>
-        <button onClick={() => setActiveTab('my_funds')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'my_funds' ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
+        <button onClick={() => setActiveTab('my_funds')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'my_funds' ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
           {isAmharic ? 'የእኔ ኢንቨስትመንቶች' : 'My Funds'}
         </button>
-        <button onClick={() => setActiveTab('history')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
+        <button onClick={() => setActiveTab('history')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'history' ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
           {isAmharic ? 'ታሪክ' : 'History'}
         </button>
       </div>
@@ -156,20 +154,21 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
               const start = new Date(plan.startDate);
               const timeRemainingStr = getTimeRemaining(start);
 
-              let barColor = 'bg-emerald-500';
-              let textColor = 'text-emerald-600';
+              let barColor = 'bg-[#1E4E79]';
+              let textColor = 'text-[#1E4E79]';
               if (percent > 70) { barColor = 'bg-red-500'; textColor = 'text-red-600'; }
               else if (percent >= 40) { barColor = 'bg-yellow-400'; textColor = 'text-yellow-600'; }
 
               return (
-                <div key={plan.id} className="bg-white/95 backdrop-blur-md p-6 rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#B519FF]/30 hover:shadow-md transition-all duration-300 group flex flex-col justify-between">
+                <div key={plan.id} className="bg-white/95 backdrop-blur-md p-6 rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#1E4E79]/30 hover:shadow-md transition-all duration-300 group flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#B519FF] transition-colors">{plan.name}</h3>
+                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#1E4E79] transition-colors">{plan.name}</h3>
                         <p className="text-sm text-gray-500">{plan.description}</p>
                       </div>
-                      <div className="bg-purple-50 text-[#B519FF] px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                      {/* ✅ Updated badge to deep blue */}
+                      <div className="bg-blue-50 text-[#1E4E79] px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                         {plan.interestRate}% {isAmharic ? '/ ቀን' : '/ day'}
                       </div>
                     </div>
@@ -188,7 +187,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                     <div className="flex justify-between text-xs font-bold mb-4">
                       <div>
                         <p className="text-gray-500 uppercase">{isAmharic ? 'የመጀመሪያ ቀን' : 'Start Date'}</p>
-                        <p className={isClosed ? 'text-red-500' : 'text-emerald-600'}>{start.toLocaleString()}</p>
+                        <p className={isClosed ? 'text-red-500' : 'text-[#1E4E79]'}>{start.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-gray-500 uppercase">{isAmharic ? 'የቀረው ጊዜ' : 'Time Remaining'}</p>
@@ -213,7 +212,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                     className={`w-full py-3 rounded-xl font-bold transition-all ${
                       (isFull || isClosed) 
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'bg-black text-white hover:bg-[#B519FF] hover:shadow-lg hover:-translate-y-0.5'
+                        : 'bg-[#1E4E79] text-white hover:bg-[#15608D] hover:shadow-lg hover:-translate-y-0.5'
                     }`}
                   >
                     {isClosed ? (isAmharic ? 'ፈንዱ ተዘግቷል (ተጀምሯል)' : 'Fund Closed (Started)') : isFull ? (isAmharic ? 'ፈንዱ ሙሉ ነው' : 'Fund Full') : (isAmharic ? 'አሁን ኢንቨስት ያድርጉ' : 'Invest Now')}
@@ -238,19 +237,19 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
       {activeTab === 'my_funds' && (
         <div className="space-y-6 relative z-10 animate-in fade-in duration-300">
           
-          {/* Fund Analytics Row */}
+          {/* Fund Analytics Row - ✅ Updated to Deep Blue theme */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="bg-white/80 backdrop-blur-md p-4 rounded-3xl shadow-sm border border-gray-100 col-span-2 md:col-span-1">
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">{isAmharic ? 'የፈንድ ቀሪ ሂሳብ' : 'Fund Balance'}</p>
-              <h2 className="text-xl font-black text-[#B519FF]">ETB {totalFundBalance.toFixed(2)}</h2>
+              <h2 className="text-xl font-black text-[#1E4E79]">ETB {totalFundBalance.toFixed(2)}</h2>
             </div>
             <div className="bg-white/80 backdrop-blur-md p-4 rounded-3xl shadow-sm border border-gray-100">
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">{isAmharic ? 'የፈንድ የቀን ትርፍ' : 'Fund Daily Profit'}</p>
-              <h2 className="text-xl font-black text-emerald-600">ETB {totalFundDailyProfit.toFixed(2)}</h2>
+              <h2 className="text-xl font-black text-[#1E4E79]">ETB {totalFundDailyProfit.toFixed(2)}</h2>
             </div>
             <div className="bg-white/80 backdrop-blur-md p-4 rounded-3xl shadow-sm border border-gray-100">
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">{isAmharic ? 'የፈንድ ጠቅላላ ትርፍ' : 'Fund Total Profit'}</p>
-              <h2 className="text-xl font-black text-emerald-600">ETB {totalFundProfit.toFixed(2)}</h2>
+              <h2 className="text-xl font-black text-[#1E4E79]">ETB {totalFundProfit.toFixed(2)}</h2>
             </div>
           </div>
 
@@ -276,13 +275,15 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                       <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የተከፈለ' : 'Invested'}</p>
                       <p className="font-black text-gray-900">ETB {fund.amountInvested}</p>
                     </div>
-                    <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100/50">
-                      <p className="text-[#B519FF] text-[10px] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የቀን ወለድ' : 'Daily Interest'}</p>
-                      <p className="font-black text-[#B519FF]">ETB {fund.dailyInterestBirr || '0.00'}</p>
+                    {/* ✅ Updated Daily Interest box to Deep Blue */}
+                    <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+                      <p className="text-[#1E4E79] text-[10px] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የቀን ወለድ' : 'Daily Interest'}</p>
+                      <p className="font-black text-[#1E4E79]">ETB {fund.dailyInterestBirr || '0.00'}</p>
                     </div>
-                    <div className="col-span-2 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 flex justify-between items-center">
-                      <p className="text-emerald-600 text-xs font-bold uppercase tracking-wider">{isAmharic ? 'ጠቅላላ የሚጠበቅ ተመላሽ' : 'Total Return'}</p>
-                      <p className="font-black text-emerald-600 text-xl">ETB {fund.totalReturn}</p>
+                    {/* ✅ Updated Total Return box to Deep Blue */}
+                    <div className="col-span-2 bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 flex justify-between items-center">
+                      <p className="text-[#1E4E79] text-xs font-bold uppercase tracking-wider">{isAmharic ? 'ጠቅላላ የሚጠበቅ ተመላሽ' : 'Total Return'}</p>
+                      <p className="font-black text-[#1E4E79] text-xl">ETB {fund.totalReturn}</p>
                     </div>
                   </div>
                 </div>
@@ -292,7 +293,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </div>
       )}
 
-      {/* ✅ TAB CONTENT: History */}
+      {/* ✅ TAB CONTENT: History - Kept emerald for "completed" success but updated border/accents where applicable */}
       {activeTab === 'history' && (
         <div className="space-y-4 relative z-10 animate-in fade-in duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -329,7 +330,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </div>
       )}
 
-      {/* Invest Modal */}
+      {/* Invest Modal - ✅ Updated to Deep Blue */}
       {selectedPlan && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -347,12 +348,12 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                   placeholder={isAmharic ? `ገደቦች: ${selectedPlan.minAmount} - ${selectedPlan.maxAmount}` : `Limits: ${selectedPlan.minAmount} - ${selectedPlan.maxAmount}`} 
                   value={investAmount} 
                   onChange={e => setInvestAmount(e.target.value)} 
-                  className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#B519FF] transition-all" 
+                  className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
                   required 
                 />
               </div>
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100/50 p-5 rounded-2xl border border-purple-100">
-                <p className="text-xs text-[#B519FF] font-bold uppercase mb-1">{isAmharic ? 'የሚጠበቅ ተመላሽ' : 'Projected Return'}</p>
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 p-5 rounded-2xl border border-blue-100">
+                <p className="text-xs text-[#1E4E79] font-bold uppercase mb-1">{isAmharic ? 'የሚጠበቅ ተመላሽ' : 'Projected Return'}</p>
                 <p className="text-2xl font-black text-gray-900">
                   ETB {investAmount 
                     ? (parseFloat(investAmount) + (parseFloat(investAmount) * (selectedPlan.interestRate / 100) * selectedPlan.durationDays)).toFixed(2) 
@@ -360,7 +361,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                 </p>
                 <p className="text-xs text-gray-600 mt-1 font-medium">{isAmharic ? `ከ ${selectedPlan.durationDays} ቀናት በኋላ` : `After ${selectedPlan.durationDays} days`}</p>
               </div>
-              <button type="submit" disabled={submitting} className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 mt-2">
+              <button type="submit" disabled={submitting} className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-4 rounded-2xl font-bold hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 mt-2">
                 {submitting ? (isAmharic ? 'በሂደት ላይ...' : 'Processing...') : (isAmharic ? 'ኢንቨስትመንትን አረጋግጥ' : 'Confirm Investment')}
               </button>
             </form>

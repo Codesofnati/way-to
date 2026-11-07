@@ -122,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       )}
 
-      {/* ✅ ADMIN SIDEBAR */}
+      {/* ✅ ADMIN SIDEBAR (Admin colors untouched) */}
       {isAdmin && (
         <aside className={`fixed top-0 left-0 z-50 w-[280px] h-screen bg-[#0B0F19] border-r border-gray-800 flex flex-col transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
@@ -242,19 +242,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
-      {/* ✅ USER TOP BAR */}
+      {/* ✅ USER TOP BAR (Updated to Deep Blue) */}
       {!isAdmin && (
         <>
           <div className="fixed top-4 right-4 z-50 flex items-center gap-1.5 bg-white shadow-sm border border-gray-100 rounded-2xl px-4 py-2">
             <span className="text-sm font-extrabold tracking-tighter text-gray-900">
-              Way<span className="text-[#B519FF]">to</span>
+              Way<span className="text-[#1E4E79]">to</span>
             </span>
           </div>
 
           {userRole === 'user' && (
             <button 
               onClick={toggleLanguage} 
-              className="fixed top-4 left-4 z-50 bg-purple-50 text-[#B519FF] px-4 py-2 rounded-xl text-xs font-bold shadow-sm border border-purple-100"
+              className="fixed top-4 left-4 z-50 bg-blue-50 text-[#1E4E79] px-4 py-2 rounded-xl text-xs font-bold shadow-sm border border-blue-100"
             >
               {isAmharic ? 'English' : 'አማርኛ'}
             </button>
@@ -262,32 +262,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </>
       )}
 
-      {/* ✅ USER BOTTOM NAV BAR */}
+      {/* ✅ USER BOTTOM NAV BAR (Updated to Deep Blue) */}
       {userRole === 'user' && !isAdminRoute && (
         <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 flex justify-around items-center py-3 pb-safe z-50 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-         <Link href={`/${currentLocale}/home`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/home') ? 'text-black' : 'text-gray-400'}`}>
-  <svg className={`w-6 h-6 ${pathname.includes('/home') ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-  <span className="text-[10px] font-bold">{isAmharic ? 'መነሻ' : 'Home'}</span>
-</Link> 
+         <Link href={`/${currentLocale}/home`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/home') ? 'text-[#1E4E79]' : 'text-gray-400'}`}>
+           <svg className={`w-6 h-6 ${pathname.includes('/home') ? 'fill-[#1E4E79]' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+           <span className="text-[10px] font-bold">{isAmharic ? 'መነሻ' : 'Home'}</span>
+         </Link> 
           
-          <Link href={`/${currentLocale}/funds`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/funds') ? 'text-black' : 'text-gray-400'}`}>
-            <svg className={`w-6 h-6 ${pathname.includes('/funds') ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <Link href={`/${currentLocale}/funds`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/funds') ? 'text-[#1E4E79]' : 'text-gray-400'}`}>
+            <svg className={`w-6 h-6 ${pathname.includes('/funds') ? 'fill-[#1E4E79]' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span className="text-[10px] font-bold">{isAmharic ? 'ፈንድ' : 'Fund'}</span>
           </Link>
           
-          <Link href={`/${currentLocale}/deposit`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/deposit') ? 'text-black' : 'text-gray-400'}`}>
-            <svg className={`w-6 h-6 ${pathname.includes('/deposit') ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          <Link href={`/${currentLocale}/deposit`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/deposit') ? 'text-[#1E4E79]' : 'text-gray-400'}`}>
+            <svg className={`w-6 h-6 ${pathname.includes('/deposit') ? 'fill-[#1E4E79]' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
             <span className="text-[10px] font-bold">{isAmharic ? 'ማስገቢያ' : 'Deposit'}</span>
           </Link>
           
-          <Link href={`/${currentLocale}/tasks`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/tasks') ? 'text-black' : 'text-gray-400'}`}>
-            <svg className={`w-6 h-6 ${pathname.includes('/tasks') ? 'fill-black' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+          <Link href={`/${currentLocale}/tasks`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/tasks') ? 'text-[#1E4E79]' : 'text-gray-400'}`}>
+            <svg className={`w-6 h-6 ${pathname.includes('/tasks') ? 'fill-[#1E4E79]' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
             <span className="text-[10px] font-bold">{isAmharic ? 'ተግባር' : 'Task'}</span>
           </Link>
           
-          <Link href={`/${currentLocale}/dashboard`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/dashboard') ? 'text-[#B519FF]' : 'text-gray-400'}`}>
-             <div className={`p-1 rounded-full ${pathname.includes('/dashboard') ? 'bg-purple-100' : ''}`}>
-                <svg className={`w-6 h-6 ${pathname.includes('/dashboard') ? 'fill-[#B519FF]' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+          <Link href={`/${currentLocale}/dashboard`} className={`flex flex-col items-center gap-1 w-16 ${pathname.includes('/dashboard') ? 'text-[#1E4E79]' : 'text-gray-400'}`}>
+             <div className={`p-1 rounded-full ${pathname.includes('/dashboard') ? 'bg-blue-100' : ''}`}>
+                <svg className={`w-6 h-6 ${pathname.includes('/dashboard') ? 'fill-[#1E4E79]' : 'fill-transparent'}`} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
              </div>
             <span className="text-[10px] font-bold">{isAmharic ? 'የእኔ' : 'Mine'}</span>
           </Link>

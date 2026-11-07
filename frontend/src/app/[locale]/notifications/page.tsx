@@ -58,19 +58,19 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
     return date.toLocaleDateString();
   };
 
-  // ✅ 2. Category Icon Helper
+  // ✅ 2. Category Icon Helper - Updated theme colors
   const getNotificationIcon = (message: string) => {
     const msg = message.toLowerCase();
-    if (msg.includes('job')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>, color: 'text-blue-600 bg-blue-50' };
-    if (msg.includes('fund') || msg.includes('invest')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>, color: 'text-emerald-600 bg-emerald-50' };
-    if (msg.includes('payment') || msg.includes('wallet')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>, color: 'text-[#B519FF] bg-purple-50' };
+    if (msg.includes('job')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>, color: 'text-[#1E4E79] bg-blue-50' };
+    if (msg.includes('fund') || msg.includes('invest')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>, color: 'text-[#15608D] bg-blue-50' };
+    if (msg.includes('payment') || msg.includes('wallet')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>, color: 'text-[#1E4E79] bg-blue-50' };
     if (msg.includes('bonus') || msg.includes('earned')) return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>, color: 'text-yellow-600 bg-yellow-50' };
     return { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>, color: 'text-gray-600 bg-gray-100' };
   };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
@@ -85,13 +85,16 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
   return (
     <div className="space-y-8 max-w-3xl mx-auto pb-24 relative overflow-hidden">
       
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center justify-center pt-6">
         <div className="relative">
-          <div className="absolute inset-0 bg-[#B519FF] blur-xl opacity-40 rounded-[1.5rem]"></div>
-          <div className="w-20 h-20 bg-gradient-to-tr from-[#B519FF] to-purple-400 rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
+          {/* ✅ Glow updated to deep blue */}
+          <div className="absolute inset-0 bg-[#1E4E79] blur-xl opacity-40 rounded-[1.5rem]"></div>
+          {/* ✅ Updated gradient */}
+          <div className="w-20 h-20 bg-gradient-to-tr from-[#1E4E79] to-[#15608D] rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
           </div>
         </div>
@@ -100,9 +103,10 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
         </h1>
         <p className="text-sm font-medium text-gray-500 mt-1 text-center">
           {isAmharic ? (
-            <>ያልተነበቡ <span className="font-bold text-[#B519FF]">{unreadCount}</span> ማሳወቂያዎች አሉዎት።</>
+            /* ✅ Updated highlight color to deep blue */
+            <>ያልተነበቡ <span className="font-bold text-[#1E4E79]">{unreadCount}</span> ማሳወቂያዎች አሉዎት።</>
           ) : (
-            <>You have <span className="font-bold text-[#B519FF]">{unreadCount}</span> unread notifications.</>
+            <>You have <span className="font-bold text-[#1E4E79]">{unreadCount}</span> unread notifications.</>
           )}
         </p>
       </div>
@@ -114,8 +118,9 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
             <button 
               key={tab}
               onClick={() => setActiveTab(tab as any)}
+              /* ✅ Updated active tab to deep blue */
               className={`flex-1 sm:flex-none px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
-                activeTab === tab ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'
+                activeTab === tab ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
               {isAmharic ? (tab === 'all' ? 'ሁሉም' : tab === 'unread' ? 'ያልተነበቡ' : 'የተነበቡ') : tab}
@@ -124,9 +129,10 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
         </div>
 
         {unreadCount > 0 && (
+          /* ✅ Updated link color to deep blue */
           <button 
             onClick={markAllAsRead}
-            className="text-xs font-bold text-[#B519FF] hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-[#1E4E79] hover:underline flex items-center gap-1"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             {isAmharic ? 'ሁሉንም እንደተነበበ ምልክት አድርግ' : 'Mark all as read'}
@@ -152,10 +158,11 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
             <div 
               key={notif.id} 
               onClick={() => !notif.isRead && markAsRead(notif.id)}
+              /* ✅ Updated unread border/ring to deep blue */
               className={`p-5 rounded-[1.5rem] shadow-sm border transition-all cursor-pointer flex gap-4 ${
                 notif.isRead 
                   ? 'bg-white/60 backdrop-blur-md border-gray-100 opacity-70' 
-                  : 'bg-white/95 backdrop-blur-md border-[#B519FF]/30 ring-1 ring-[#B519FF]/20 hover:shadow-md hover:-translate-y-0.5'
+                  : 'bg-white/95 backdrop-blur-md border-[#1E4E79]/30 ring-1 ring-[#1E4E79]/20 hover:shadow-md hover:-translate-y-0.5'
               }`}
             >
               {/* ✅ Category Icon */}
@@ -169,7 +176,8 @@ export default function UserNotifications({ params }: { params: Promise<{ locale
                     {notif.message}
                   </p>
                   {!notif.isRead && (
-                    <span className="w-2.5 h-2.5 bg-[#B519FF] rounded-full shrink-0 mt-1 shadow-[0_0_10px_rgba(181,25,255,0.5)]"></span>
+                    /* ✅ Updated dot to deep blue */
+                    <span className="w-2.5 h-2.5 bg-[#1E4E79] rounded-full shrink-0 mt-1 shadow-[0_0_10px_rgba(30,78,121,0.5)]"></span>
                   )}
                 </div>
                 {/* ✅ Relative Time */}

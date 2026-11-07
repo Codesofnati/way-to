@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function UserTasks({ params }: { params: Promise<{ locale: string }> }) {
@@ -21,6 +21,13 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
   const [submitting, setSubmitting] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
+  // ✅ YouTube Player States
+  const [playerReady, setPlayerReady] = useState(false);
+  const [watchTime, setWatchTime] = useState(0);
+  const [videoWatched, setVideoWatched] = useState(false);
+  const playerRef = useRef<any>(null);
+  const timerRef = useRef<any>(null);
+
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
   const isAmharic = locale === 'am';
@@ -34,11 +41,84 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
     return () => clearInterval(interval);
   }, [router, locale, user.id, apiUrl]);
 
+  // ✅ Load YouTube API script
+  useEffect(() => {
+    if (showVideo) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      (window as any).onYouTubeIframeAPIReady = () => {
+        setPlayerReady(true);
+      };
+    }
+  }, [showVideo]);
+
+  // ✅ Initialize Player when modal opens
+  useEffect(() => {
+    if (showVideo && playerReady && activeTask) {
+      const ytId = getYouTubeId(activeTask.youtubeUrl);
+      if (!ytId) return;
+
+      // Clear previous player
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new (window as any).YT.Player('youtube-player', {
+        videoId: ytId,
+        playerVars: { autoplay: 1, rel: 0 },
+        events: {
+          'onStateChange': (event: any) => {
+            // If playing, start 30s timer
+            if (event.data === (window as any).YT.PlayerState.PLAYING) {
+              if (!timerRef.current && !videoWatched) {
+                timerRef.current = setInterval(() => {
+                  setWatchTime((prev) => {
+                    if (prev >= 29) {
+                      clearInterval(timerRef.current);
+                      setVideoWatched(true);
+                      return 30;
+                    }
+                    return prev + 1;
+                  });
+                }, 1000);
+              }
+            }
+            // If paused, stop the timer
+            if (event.data === (window as any).YT.PlayerState.PAUSED) {
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+            }
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [showVideo, playerReady, activeTask]);
+
+  // Reset video tracking when task changes or modal closes
+  useEffect(() => {
+    if (!activeTask || !showVideo) {
+      setWatchTime(0);
+      setVideoWatched(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  }, [activeTask, showVideo]);
+
   const checkTime = () => {
     const now = new Date();
     const currentHour = now.getHours(); 
 
-    // OPEN: 8:00 AM to 3:59 PM (16 is 4:00 PM)
     if (currentHour >= 8 && currentHour < 16) {
       setTimeState('OPEN');
     } else {
@@ -61,6 +141,10 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
 
   const handleSubmitTask = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!videoWatched) {
+      return alert(isAmharic ? 'እባክዎ ቪዲዮውን ለ 30 ሰከንድ ይመልከቱ።' : 'Please watch the video for at least 30 seconds.');
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch(`${apiUrl}/api/user/${user.id}/submit-task`, {
@@ -87,7 +171,7 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
@@ -96,11 +180,10 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur (Matching Jobs UI) */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blurs */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
-      {/* Header & Balance */}
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">
@@ -111,10 +194,11 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-black to-gray-800 text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden group w-full md:w-auto">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
+        {/* ✅ Updated to Deep Blue Gradient */}
+        <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden group w-full md:w-auto">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
           <div className="relative z-10">
-            <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
+            <p className="text-xs text-blue-100 uppercase font-bold tracking-wider mb-1">
               {isAmharic ? 'ያለዎት ቀሪ ሂሳብ' : 'Available Balance'}
             </p>
             <p className="text-3xl font-black tracking-tight">ETB {userData?.user?.walletBalance || '0.00'}</p>
@@ -122,10 +206,9 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
         </div>
       </div>
 
-      {/* Time Restriction Banner */}
       <div className={`relative z-10 p-4 rounded-2xl border font-bold text-sm flex items-center justify-between shadow-sm backdrop-blur-md ${
         timeState === 'OPEN' 
-          ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800' 
+          ? 'bg-blue-50/80 border-blue-200 text-[#1E4E79]' 
           : 'bg-red-50/80 border-red-200 text-red-800'
       }`}>
         {timeState === 'OPEN' 
@@ -140,14 +223,15 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Job</h3>
           <p className="text-gray-500 mb-6">{isAmharic ? 'እባክዎ መጀመሪያ ስራ ይግዙ።' : 'You have not registered for any job yet.'}</p>
-          <a href={`/${locale}/jobs`} className="inline-block bg-black text-white px-8 py-3 rounded-xl font-bold hover:bg-[#B519FF] transition-colors shadow-md">
+          {/* ✅ Updated to deep blue */}
+          <a href={`/${locale}/jobs`} className="inline-block bg-[#1E4E79] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#15608D] transition-colors shadow-md">
             {isAmharic ? 'ስራዎችን ይመልከቱ' : 'Browse Jobs'}
           </a>
         </div>
       ) : totalTasksToday === 0 ? (
         <div className="relative z-10 bg-white/95 backdrop-blur-md p-12 rounded-[2rem] text-center border border-gray-100 shadow-sm">
           <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <svg className="w-8 h-8 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">{isAmharic ? 'ዛሬ አዲስ ቪዲዮ የለም' : 'No new videos today'}</h3>
           <p className="text-gray-500">{isAmharic ? 'አስተዳዳሪው ለዛሬ አዲስ ቪዲዮ አላስገባም።' : 'The Super Admin has not uploaded videos for today yet. Check back later.'}</p>
@@ -157,16 +241,15 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
           {myJobs.map((myJob: any) => (
             <div key={myJob.id} className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-1 bg-[#B519FF] rounded-full"></div>
+                {/* ✅ Updated to deep blue */}
+                <div className="h-8 w-1 bg-[#1E4E79] rounded-full"></div>
                 <h2 className="text-2xl font-bold text-gray-900">{myJob.jobName} Tasks</h2>
               </div>
               
-              {/* Grid Layout */}
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {myJob.tasks.map((task: any) => (
-                  <div key={task.id} className="bg-white/95 backdrop-blur-md rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#B519FF]/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col overflow-hidden">
+                  <div key={task.id} className="bg-white/95 backdrop-blur-md rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#1E4E79]/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col overflow-hidden">
                     
-                    {/* Thumbnail Area */}
                     <div className="relative aspect-video bg-gray-200 overflow-hidden">
                       {task.thumbnailUrl ? (
                         <img src={task.thumbnailUrl} alt={task.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -174,13 +257,11 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                         <div className="flex items-center justify-center h-full text-gray-400 bg-gray-100">No Thumbnail</div>
                       )}
                       
-                      {/* Fake Likes Pill */}
                       <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-black/70 backdrop-blur-sm text-white text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 md:py-1 rounded-full flex items-center gap-1 shadow-sm">
                         <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
                         {task.fakeLikes || 0}
                       </div>
 
-                      {/* Completed Overlay */}
                       {task.isCompleted && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
                           <span className="text-white font-bold text-sm md:text-lg border-2 border-white px-3 py-1 md:px-4 md:py-2 rounded-xl flex items-center gap-2">
@@ -190,27 +271,25 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                       )}
                     </div>
                     
-                    {/* Content Area */}
                     <div className="p-4 md:p-5 flex-1 flex flex-col justify-between">
-                      <h3 className="font-bold text-gray-900 text-sm md:text-base mb-4 line-clamp-2 leading-snug group-hover:text-[#B519FF] transition-colors">{task.title}</h3>
+                      <h3 className="font-bold text-gray-900 text-sm md:text-base mb-4 line-clamp-2 leading-snug group-hover:text-[#1E4E79] transition-colors">{task.title}</h3>
                       
                       <button 
                         onClick={() => { 
                           if (timeState !== 'OPEN') return alert(isAmharic ? 'ተግባሮች ተዘግተዋል።' : 'Tasks are closed. Please check back between 8:00 AM and 4:00 PM.');
                           setActiveTask({...task, jobId: myJob.jobId}); 
                           
-                          // ✅ Check if the task requires subscription
                           if (task.requiresSubscription) {
-                            setShowVideo(false); // Show Subscribe screen first
+                            setShowVideo(false); 
                           } else {
-                            setShowVideo(true); // Skip straight to the video
+                            setShowVideo(true); 
                           }
                         }}
                         disabled={task.isCompleted || timeState !== 'OPEN'}
                         className={`w-full py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all shadow-sm ${
                           (task.isCompleted || timeState !== 'OPEN') 
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                            : 'bg-black text-white hover:bg-[#B519FF] hover:shadow-md'
+                            : 'bg-[#1E4E79] text-white hover:bg-[#15608D] hover:shadow-md'
                         }`}
                       >
                         {task.isCompleted 
@@ -237,7 +316,6 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
               <button onClick={() => setActiveTask(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors text-2xl font-bold">&times;</button>
             </div>
 
-            {/* Step 1 - Subscribe First */}
             {!showVideo ? (
               <div className="p-8 text-center space-y-6">
                 <div className="w-24 h-24 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-red-100">
@@ -274,18 +352,10 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                 </a>
               </div>
             ) : (
-              // Step 2 - Video & Rating
               <>
                 <div className="aspect-video bg-black relative">
-                  {getYouTubeId(activeTask.youtubeUrl) && (
-                    <iframe 
-                      width="100%" 
-                      height="100%" 
-                      src={`https://www.youtube.com/embed/${getYouTubeId(activeTask.youtubeUrl)}?autoplay=1`} 
-                      allowFullScreen
-                      className="absolute inset-0"
-                    ></iframe>
-                  )}
+                  {/* ✅ The API replaces this div with the iframe player */}
+                  <div id="youtube-player" className="absolute inset-0 w-full h-full"></div>
                 </div>
                 <form onSubmit={handleSubmitTask} className="p-6 md:p-8 space-y-6">
                   <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-4">
@@ -299,7 +369,7 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                           type="checkbox" 
                           checked={subscribed} 
                           onChange={(e) => setSubscribed(e.target.checked)} 
-                          className="peer appearance-none w-6 h-6 border-2 border-gray-300 rounded-md checked:bg-[#B519FF] checked:border-[#B519FF] transition-colors cursor-pointer" 
+                          className="peer appearance-none w-6 h-6 border-2 border-gray-300 rounded-md checked:bg-[#1E4E79] checked:border-[#1E4E79] transition-colors cursor-pointer" 
                         />
                         <svg className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                       </div>
@@ -314,7 +384,7 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                           type="checkbox" 
                           checked={liked} 
                           onChange={(e) => setLiked(e.target.checked)} 
-                          className="peer appearance-none w-6 h-6 border-2 border-gray-300 rounded-md checked:bg-[#B519FF] checked:border-[#B519FF] transition-colors cursor-pointer" 
+                          className="peer appearance-none w-6 h-6 border-2 border-gray-300 rounded-md checked:bg-[#1E4E79] checked:border-[#1E4E79] transition-colors cursor-pointer" 
                         />
                         <svg className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                       </div>
@@ -344,13 +414,18 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
 
                   <button 
                     type="submit" 
-                    disabled={submitting || rating < 5 || !subscribed || !liked} 
-                    className="w-full bg-black text-white p-4 rounded-xl font-bold text-lg hover:bg-[#B519FF] transition-all shadow-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none"
+                    disabled={submitting || rating < 5 || !subscribed || !liked || !videoWatched} 
+                    className="w-full bg-[#1E4E79] text-white p-4 rounded-xl font-bold text-lg hover:bg-[#15608D] transition-all shadow-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {submitting ? (
                       <span className="flex items-center justify-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         {isAmharic ? 'በሂደት ላይ...' : 'Processing...'}
+                      </span>
+                    ) : !videoWatched ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        {isAmharic ? `ቪዲዮ በመመልከት ላይ... (${30 - watchTime} ሰ)` : `Watching video... (${30 - watchTime}s)`}
                       </span>
                     ) : (
                       isAmharic ? 'ሽልማት ይጠይቁ' : 'Claim Reward'

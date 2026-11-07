@@ -12,12 +12,17 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
   const [loading, setLoading] = useState(true);
   
   // App Settings (Profit & VIP images)
-  const [appSettings, setAppSettings] = useState<{profitImages: string[], vipImage: string}>({ 
+  const [appSettings, setAppSettings] = useState<{
+    profitImages: string[], 
+    vipImages: string[] 
+  }>({ 
     profitImages: [], 
-    vipImage: '' 
+    vipImages: [] 
   });
 
-  // States for expandable and modals
+  // ✅ NEW: Top Banner State
+  const [topBanner, setTopBanner] = useState<any>(null);
+
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [activeImageModal, setActiveImageModal] = useState<'profit' | 'vip' | null>(null);
@@ -28,15 +33,21 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
     Promise.all([
       fetch(`${apiUrl}/api/stories`).then(r => r.json()),
       fetch(`${apiUrl}/api/active-notification`).then(r => r.json()),
-      fetch(`${apiUrl}/api/app-settings`).then(r => r.json())
-    ]).then(([storiesRes, notifRes, settingsRes]) => {
+      fetch(`${apiUrl}/api/app-settings`).then(r => r.json()),
+      fetch(`${apiUrl}/api/top-banner`).then(r => r.json()) // ✅ Fetch Top Banner
+    ]).then(([storiesRes, notifRes, settingsRes, bannerRes]) => {
       if (storiesRes.success) setStories(storiesRes.stories);
       
       if (settingsRes.success) {
         setAppSettings({
           profitImages: settingsRes.settings.profitImages || [],
-          vipImage: settingsRes.settings.vipImage || ''
+          vipImages: settingsRes.settings.vipImages || []
         });
+      }
+
+      // ✅ Set Top Banner if it exists
+      if (bannerRes.success && bannerRes.banner) {
+        setTopBanner(bannerRes.banner);
       }
 
       if (notifRes.success && notifRes.notifications && notifRes.notifications.length > 0) {
@@ -54,72 +65,133 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center">
+      <div className="w-10 h-10 border-4 border-[#1E4E79] border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="text-gray-500 font-bold tracking-widest text-xs uppercase">Loading...</p>
+    </div>
+  );
 
   const currentNotif = activeNotifs[currentNotifIndex];
 
   return (
-    <div className="max-w-2xl mx-auto pb-24 pt-1 px-1 relative bg-white min-h-screen">
+    <div className="max-w-2xl mx-auto pb-24 pt-4 px-4 relative bg-[#F8F9FA] min-h-screen">
       
-      {/* 1. About Us (Expandable) */}
-      <div className="mb-3 bg-white  border border-gray-100 overflow-hidden transition-all duration-300">
+      {/* ✅ NEW: Top Banner Section (Above About Us) */}
+      {topBanner && (
+        <div className="mb-6 rounded-3xl overflow-hidden shadow-lg relative min-h-[200px] flex items-end bg-gray-900">
+          {topBanner.imageUrl && (
+            <img 
+              src={topBanner.imageUrl} 
+              alt="Banner" 
+              className="absolute inset-0 w-full h-full object-cover opacity-80" 
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+          
+          {(topBanner.title || topBanner.subtitle) && (
+            <div className="relative z-10 p-6 w-full text-left">
+              {topBanner.title && (
+                <h1 className="text-2xl font-black text-white leading-tight drop-shadow-md mb-1">
+                  {topBanner.title}
+                </h1>
+              )}
+              {topBanner.subtitle && (
+                <p className="text-sm font-medium text-white/90 drop-shadow-sm">
+                  {topBanner.subtitle}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 1. About Us Section */}
+      <div className="mb-6 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300">
         <button 
           onClick={() => setIsAboutExpanded(!isAboutExpanded)}
-          className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition"
+          className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition"
         >
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-5 bg-[#B519FF] rounded-full"></div>
-            <h2 className="font-bold text-gray-900 text-base">
-              {isAmharic ? 'ስለ እኛ (About Us)' : 'About Us (Our Story)'}
-            </h2>
+          <div className="flex items-center gap-4">
+            {/* ✅ Changed to deep blue */}
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#1E4E79] shadow-inner">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900 text-lg">
+                {isAmharic ? 'ስለ እኛ (About Us)' : 'About Us'}
+              </h2>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">{isAmharic ? 'የኩባንያችን ታሪክ' : 'Our Story & Mission'}</p>
+            </div>
           </div>
-          <svg 
-            className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isAboutExpanded ? 'rotate-180' : ''}`} 
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
+          <div className={`w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center transition-transform duration-300 ${isAboutExpanded ? 'rotate-180' : ''}`}>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
         </button>
 
-        <div className="px-5 pb-5 text-sm text-gray-600 leading-relaxed space-y-4">
+        <div className="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-4">
           {isAmharic ? (
-            <p className="font-bold text-gray-900 text-base">ጉዟችን በካናዳ የተጀመረው በአንድ ቀላል ግን ጥልቅ እውነት ነበር፦ ችሎታና ተሰጥኦ በሁሉም ቦታ ቢኖርም፣ ዕድል ግን ለሁሉም እኩል አይዳረስም።</p>
+            <div className='space-y-4'>
+              <p className="font-bold text-gray-900 text-base leading-snug">ጉዟችን በካናዳ የተጀመረው በአንድ ቀላል ግን ጥልቅ እውነት ነበር፦ ችሎታና ተሰጥኦ በሁሉም ቦታ ቢኖርም፣ ዕድል ግን ለሁሉም እኩል አይዳረስም።</p>
+              <p>በዓለም ላይ እጅግ ከተሳሰሩ የዲጂታል ምጣኔ-ሀብት ማዕከላት በአንዱ ውስጥ ስንኖር፣ የርቀት (የኦንላይን) ሥራ የሰዎችን ኑሮ እንዴት እንደሚቀይር፣ የጊዜ ነፃነትና የገንዘብ ራስን መቻልን እንዴት እንደሚያጎናፅፍ በአካል ተመልክተናል። በሌላ በኩል ደግሞ፣ በመላው ዓለም የሚገኙ በርካታ ብቁ እና ታታሪ ግለሰቦች በመልክዓ-ምድራዊ እና በኢኮኖሚ መሰናክሎች ብቻ ወደኋላ ሲቀሩ አይተናል። ክብር ያለው እና አስተማማኝ ገቢ የማግኘት ዕድል ሰው በተወለደበት የፖስታ ኮድ ወይም አካባቢ መወሰን የለበትም።</p>
+                <p>ቴክኖሎጂ ሰዎችን የሚያራርቅ ሳይሆን ክፍተቶችን የሚያጠብ የእኩልነት ድልድይ መሆን አለበት በሚል ጽኑ እምነት ይህንን ተቋም መሠረትን። ዝቅተኛ ገቢ ያላቸው ታታሪ ዜጎችን ከዓለም አቀፉ የዲጂታል ኢኮኖሚ ጋር እናገናኛለን—ይህም ጊዜያዊ ሥራዎችን በማመቻቸት ብቻ ሳይሆን፣ ዘላቂ የገቢ ምንጭ እንዲፈጥሩ የሚያስችሉ ተግባራዊ ሥልጠናዎችን፣ የዲጂታል መሠረተ-ልማቶችን እና አስተማማኝ የክፍያ ሥርዓቶችን በማቅረብ ነው።</p>
+                
+            </div>
           ) : (
-            <p className="font-bold text-gray-900 text-base">Our journey began in Canada with a simple realization: while talent is universal, opportunity is not.</p>
+            <div className='space-y-4'>
+            <p className="font-bold text-gray-900 text-base leading-snug">Our journey began in Canada with a simple realization: while talent is universal, opportunity is not.</p>
+
+               <p>Living in one of the most connected digital economies in the world, we saw how remote work transformed lives, offering flexibility and financial independence. At the same time, we saw billions of capable, hardworking individuals around the world held back solely by geographic and economic barriers. Access to dignified, reliable income shouldn’t depend on the postal code you were born in.</p>
+                <p>Driven by the belief that technology should be an equalizer rather than a divider, we set out to build a platform that bridges the gap. We connect determined individuals from low-income communities with the global digital economy—providing not just gig opportunities, but the practical training, digital infrastructure, and reliable payment systems needed to build lasting livelihoods.</p>
+                
+            </div>
+            
           )}
           
           <div className={`space-y-4 transition-all duration-500 ${isAboutExpanded ? 'block' : 'hidden'}`}>
             {isAmharic ? (
               <>
-                <p>በዓለም ላይ እጅግ ከተሳሰሩ የዲጂታል ምጣኔ-ሀብት ማዕከላት በአንዱ ውስጥ ስንኖር፣ የርቀት (የኦንላይን) ሥራ የሰዎችን ኑሮ እንዴት እንደሚቀይር፣ የጊዜ ነፃነትና የገንዘብ ራስን መቻልን እንዴት እንደሚያጎናፅፍ በአካል ተመልክተናል። በሌላ በኩል ደግሞ፣ በመላው ዓለም የሚገኙ በርካታ ብቁ እና ታታሪ ግለሰቦች በመልክዓ-ምድራዊ እና በኢኮኖሚ መሰናክሎች ብቻ ወደኋላ ሲቀሩ አይተናል። ክብር ያለው እና አስተማማኝ ገቢ የማግኘት ዕድል ሰው በተወለደበት የፖስታ ኮድ ወይም አካባቢ መወሰን የለበትም።</p>
-                <p>ቴክኖሎጂ ሰዎችን የሚያራርቅ ሳይሆን ክፍተቶችን የሚያጠብ የእኩልነት ድልድይ መሆን አለበት በሚል ጽኑ እምነት ይህንን ተቋም መሠረትን። ዝቅተኛ ገቢ ያላቸው ታታሪ ዜጎችን ከዓለም አቀፉ የዲጂታል ኢኮኖሚ ጋር እናገናኛለን—ይህም ጊዜያዊ ሥራዎችን በማመቻቸት ብቻ ሳይሆን፣ ዘላቂ የገቢ ምንጭ እንዲፈጥሩ የሚያስችሉ ተግባራዊ ሥልጠናዎችን፣ የዲጂታል መሠረተ-ልማቶችን እና አስተማማኝ የክፍያ ሥርዓቶችን በማቅረብ ነው።</p>
                 <p>በካናዳ የተጀመረው ይህ ጥረት ዛሬ ድንበር የለሽ ማህበረሰብ ፈጥሯል፤ ይህም ሰዎች ተገቢውን ዕድል እና መሣሪያ ሲያገኙ ራሳቸውን መመገብ ብቻ ሳይሆን፣ ቤተሰቦቻቸውን እና ማህበረሰባቸውን ከፍ እንደሚያደርጉ በተግባር ያሳያል።</p>
-                <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-4">
-                  <h4 className="font-bold text-[#B519FF] mb-2">ተልዕኮ (Mission)</h4>
-                  <p className="text-gray-700 mb-3">ዝቅተኛ ገቢ ላላቸው ወገኖች አስፈላጊውን የዲጂታል ክህሎት በማስታጠቅ እና ቀጥታ ተገቢ ክፍያ ካላቸው ዘላቂ የኦንላይን ሥራዎች ጋር በማገናኘት የኢኮኖሚ እንቅፋቶችን ማስወገድ።</p>
+                <div className="bg-[#F8F9FA] p-5 rounded-2xl border border-gray-100 mt-4">
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    {/* ✅ Changed to deep blue */}
+                    <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    ተልዕኮ (Mission)
+                  </h4>
+                  <p className="text-gray-600 mb-4 text-xs leading-relaxed">ዝቅተኛ ገቢ ላላቸው ወገኖች አስፈላጊውን የዲጂታል ክህሎት በማስታጠቅ እና ቀጥታ ተገቢ ክፍያ ካላቸው ዘላቂ የኦንላይን ሥራዎች ጋር በማገናኘት የኢኮኖሚ እንቅፋቶችን ማስወገድ።</p>
                   
-                  <h4 className="font-bold text-[#B519FF] mb-2">ዋና ዋና እሴቶቻችን (Core Values)</h4>
-                  <ul className="list-disc pl-4 space-y-1 text-gray-700">
-                    <li><strong>ተደራሽነት (Radical Accessibility):</strong> ግለሰቦች ከዚህ ቀደም የቴክኖሎጂ ልምድ ይኑራቸው አይኑራቸው፣ ለእያንዳንዱ ሰው በቀላሉ የሚገቡ ሥልጠናዎችንና መሣሪያዎችን ማዘጋጀት።</li>
-                    <li><strong>ዘላቂ አቅም ግንባታ (Sustainable Empowerment):</strong> ከመረዳዳት ባለፈ በተግባራዊ ክህሎት እና በገበያ ትስስር ራስን በራስ ማስተዳደር ላይ ማተኮር።</li>
-                    <li><strong>ዓለም አቀፍ ትስስር (Global Community):</strong> በዓለም አቀፉ የሥራ ፍላጎት እና በአካባቢው ባሉ ብቁ ታታሪ ኃይሎች መካከል እውነተኛ ድልድይ መፍጠር።</li>
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    {/* ✅ Changed to deep blue */}
+                    <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    ዋና ዋና እሴቶቻችን
+                  </h4>
+                  <ul className="space-y-2 text-xs text-gray-600">
+                    <li className="flex items-start gap-2"><span className="text-[#1E4E79] mt-0.5">•</span> <span><strong className="text-gray-900">ተደራሽነት:</strong> ግለሰቦች ከዚህ ቀደም የቴክኖሎጂ ልምድ ይኑራቸው አይኑራቸው፣ ለእያንዳንዱ ሰው በቀላሉ የሚገቡ ሥልጠናዎችንና መሣሪያዎችን ማዘጋጀት።</span></li>
+                    <li className="flex items-start gap-2"><span className="text-[#1E4E79] mt-0.5">•</span> <span><strong className="text-gray-900">ዘላቂ አቅም ግንባታ:</strong> ከመረዳዳት ባለፈ በተግባራዊ ክህሎት እና በገበያ ትስስር ራስን በራስ ማስተዳደር ላይ ማተኮር።</span></li>
+                    <li className="flex items-start gap-2"><span className="text-[#1E4E79] mt-0.5">•</span> <span><strong className="text-gray-900">ዓለም አቀፍ ትስስር:</strong> በዓለም አቀፉ የሥራ ፍላጎት እና በአካባቢው ባሉ ብቁ ታታሪ ኃይሎች መካከል እውነተኛ ድልድይ መፍጠር።</span></li>
                   </ul>
                 </div>
               </>
             ) : (
               <>
-                <p>Living in one of the most connected digital economies in the world, we saw how remote work transformed lives, offering flexibility and financial independence. At the same time, we saw billions of capable, hardworking individuals around the world held back solely by geographic and economic barriers. Access to dignified, reliable income shouldn’t depend on the postal code you were born in.</p>
-                <p>Driven by the belief that technology should be an equalizer rather than a divider, we set out to build a platform that bridges the gap. We connect determined individuals from low-income communities with the global digital economy—providing not just gig opportunities, but the practical training, digital infrastructure, and reliable payment systems needed to build lasting livelihoods.</p>
                 <p>What started as a Canadian initiative has grown into a borderless community, proving that when people are given the tools to participate, they don’t just earn a living—they lift up their families and transform their communities.</p>
-                <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mt-4">
-                  <h4 className="font-bold text-[#B519FF] mb-2">Mission Statement</h4>
-                  <p className="text-gray-700 mb-3">To dismantle systemic economic barriers by equipping low-income individuals with digital skills and connecting them directly to sustainable, fair-paying online work.</p>
+               <div className="bg-[#F8F9FA] p-5 rounded-2xl border border-gray-100 mt-4">
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    {/* ✅ Changed to deep blue */}
+                    <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Mission Statement
+                  </h4>
+                  <p className="text-gray-600 mb-4 text-xs leading-relaxed">To dismantle systemic economic barriers by equipping low-income individuals with digital skills and connecting them directly to sustainable, fair-paying online work.</p>
                   
-                  <h4 className="font-bold text-[#B519FF] mb-2">Core Values</h4>
-                  <ul className="list-disc pl-4 space-y-1 text-gray-700">
-                    <li><strong>Radical Accessibility:</strong> Designing tools, training, and onboarding that meet people where they are, regardless of prior technical experience.</li>
-                    <li><strong>Sustainable Empowerment:</strong> Moving beyond charity toward self-sufficiency through practical skill-building and market integration.</li>
-                    <li><strong>Global Community:</strong> Building authentic connections between global demand and resilient local talent.</li>
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    {/* ✅ Changed to deep blue */}
+                    <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Core Values
+                  </h4>
+                  <ul className="space-y-2 text-xs text-gray-600">
+                    <li className="flex items-start gap-2"><span className="text-[#1E4E79] mt-0.5">•</span> <span><strong className="text-gray-900">Radical Accessibility:</strong> Designing tools, training, and onboarding that meet people where they are, regardless of prior technical experience.</span></li>
+                    <li className="flex items-start gap-2"><span className="text-[#1E4E79] mt-0.5">•</span> <span><strong className="text-gray-900">Sustainable Empowerment:</strong> Moving beyond charity toward self-sufficiency through practical skill-building and market integration.</span></li>
+                    <li className="flex items-start gap-2"><span className="text-[#1E4E79] mt-0.5">•</span> <span><strong className="text-gray-900">Global Community:</strong> Building authentic connections between global demand and resilient local talent.</span></li>
                   </ul>
                 </div>
               </>
@@ -128,78 +200,102 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
         </div>
       </div>
 
-      {/* 2. Image Banners (Profit & VIP) - 2 Column Grid */}
+      {/* 2. Image Banners (Profit & VIP) */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         
         {/* Profit Banner */}
         <button 
           onClick={() => setActiveImageModal('profit')}
-          className="aspect-square rounded-2xl overflow-hidden relative group shadow-sm hover:shadow-md transition bg-gray-900 w-full"
+          className="aspect-[4/5] rounded-[1.5rem] overflow-hidden relative group shadow-md hover:shadow-lg transition-all duration-300 bg-gray-900 w-full"
         >
-          {appSettings.profitImages.length > 0 && (
+          {appSettings.profitImages.length > 0 ? (
             <img 
               src={appSettings.profitImages[0]} 
               alt="Profit" 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" 
+              className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" 
             />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1E4E79] to-[#15608D]"></div>
           )}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 z-10">
-            <h3 className="text-white font-bold text-lg md:text-xl text-center tracking-wide drop-shadow-md leading-tight">
-              Profit
-            </h3>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col items-start">
+            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center mb-2">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 className="text-white font-bold text-lg leading-tight drop-shadow-sm">Profit</h3>
+            <p className="text-white/70 text-[10px] font-medium uppercase tracking-widest mt-1">View Tables</p>
           </div>
         </button>
 
         {/* VIP Banner */}
         <button 
           onClick={() => setActiveImageModal('vip')}
-          className="aspect-square rounded-2xl overflow-hidden relative group shadow-sm hover:shadow-md transition bg-gray-900 w-full"
+          className="aspect-[4/5] rounded-[1.5rem] overflow-hidden relative group shadow-md hover:shadow-lg transition-all duration-300 bg-gray-900 w-full"
         >
-          {appSettings.vipImage && (
+          {appSettings.vipImages.length > 0 ? (
              <img 
-               src={appSettings.vipImage} 
+               src={appSettings.vipImages[0]} 
                alt="VIP" 
-               className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" 
+               className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700" 
              />
+          ) : (
+            /* ✅ Fallback VIP gradient changed to match the deep blue/teal theme */
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1E4E79] to-[#15608D]"></div>
           )}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 z-10">
-            <h3 className="text-white font-bold text-lg md:text-xl text-center tracking-wide drop-shadow-md leading-tight">
-              Become<br/>Our VIP
-            </h3>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col items-start">
+            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center mb-2">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+            </div>
+            <h3 className="text-white font-bold text-lg leading-tight drop-shadow-sm">Become VIP</h3>
+            <p className="text-white/70 text-[10px] font-medium uppercase tracking-widest mt-1">Exclusive</p>
           </div>
         </button>
       </div>
 
-      {/* 3. Stories Feed (Clickable) */}
+      {/* 3. Stories Feed */}
       {stories.length > 0 && (
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4 px-1">
-             <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
-             <h2 className="font-bold text-gray-800 text-sm">Notice to Wayto Users</h2>
+          <div className="flex items-center gap-2 mb-4 px-2">
+             {/* ✅ Changed to deep blue */}
+             <div className="w-1.5 h-4 bg-[#1E4E79] rounded-full"></div>
+             <h2 className="font-bold text-gray-900 text-sm uppercase tracking-widest">Notice to Wayto Users</h2>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             {stories.map((story, index) => (
               <button 
                 key={story.id} 
                 onClick={() => setSelectedStory(story)}
-                className={`w-full text-left flex items-center justify-between p-5 hover:bg-gray-50 transition ${
+                className={`w-full text-left flex items-center justify-between p-5 hover:bg-gray-50 transition-all duration-200 group ${
                   index !== stories.length - 1 ? 'border-b border-gray-100' : ''
                 }`}
               >
-                <div className="flex-1 pr-4">
-                  <h3 className="font-bold text-gray-900 text-base mb-1">
-                    {isAmharic ? story.titleAm : story.titleEn}
-                  </h3>
-                  <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
-                    {isAmharic ? story.contentAm : story.contentEn}
-                  </p>
-                </div>
-                {story.imageUrl && (
-                  <div className="w-24 h-20 flex-shrink-0 rounded-xl overflow-hidden border border-gray-100">
-                    <img src={story.imageUrl} alt="Story" className="w-full h-full object-cover" />
+                <div className="flex items-center gap-4 flex-1">
+                  {story.imageUrl ? (
+                    <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                      <img src={story.imageUrl} alt="Story" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ) : (
+                    /* ✅ Changed to deep blue */
+                    <div className="w-12 h-12 flex-shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-[#1E4E79]">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                    </div>
+                  )}
+                  <div className="flex-1 pr-4">
+                    {/* ✅ Changed hover text color to deep blue */}
+                    <h3 className="font-bold text-gray-900 text-base mb-1 group-hover:text-[#1E4E79] transition-colors line-clamp-1">
+                      {isAmharic ? story.titleAm : story.titleEn}
+                    </h3>
+                    <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+                      {isAmharic ? story.contentAm : story.contentEn}
+                    </p>
                   </div>
-                )}
+                </div>
+                {/* ✅ Changed hover background to deep blue */}
+                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#1E4E79] transition-colors flex-shrink-0">
+                  <svg className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
               </button>
             ))}
           </div>
@@ -208,22 +304,22 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
 
       {/* 4. Full Story Modal */}
       {selectedStory && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
-              <h2 className="font-bold text-gray-900 line-clamp-1">{isAmharic ? selectedStory.titleAm : selectedStory.titleEn}</h2>
-              <button onClick={() => setSelectedStory(null)} className="text-gray-400 hover:text-gray-900 text-xl font-bold">&times;</button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
+              <h2 className="font-bold text-gray-900 text-lg line-clamp-1">{isAmharic ? selectedStory.titleAm : selectedStory.titleEn}</h2>
+              <button onClick={() => setSelectedStory(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition font-bold">&times;</button>
             </div>
-            <div className="overflow-y-auto">
+            <div className="overflow-y-auto custom-scrollbar">
               {selectedStory.imageUrl && (
-                <img src={selectedStory.imageUrl} alt="Story" className="w-full h-56 object-cover" />
+                <img src={selectedStory.imageUrl} alt="Story" className="w-full h-64 object-cover" />
               )}
-              <div className="p-5 text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">
+              <div className="p-6 text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">
                 {isAmharic ? selectedStory.contentAm : selectedStory.contentEn}
               </div>
             </div>
             <div className="p-4 bg-gray-50 border-t border-gray-100">
-              <button onClick={() => setSelectedStory(null)} className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-bold">Close</button>
+              <button onClick={() => setSelectedStory(null)} className="w-full bg-[#1E4E79] text-white py-3 rounded-2xl font-bold hover:bg-[#153a5b] transition shadow-md">Close</button>
             </div>
           </div>
         </div>
@@ -231,29 +327,32 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
 
       {/* 5. Profit / VIP Image Modals */}
       {activeImageModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex flex-col">
-          <div className="p-4 flex justify-end">
-            <button onClick={() => setActiveImageModal(null)} className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
+        <div className="fixed inset-0 bg-white backdrop-blur-lg z-[100] flex flex-col animate-in fade-in duration-200">
+          <div className="p-4 flex justify-between items-center bg-[#1E4E79]">
+            <h2 className="font-bold text-white text-lg capitalize">{activeImageModal} Details</h2>
+            <button onClick={() => setActiveImageModal(null)} className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-4 pb-10 flex flex-col items-center gap-4">
+          <div className="flex-1 overflow-y-auto px-4 py-8 flex flex-col items-center gap-6 custom-scrollbar">
             
             {activeImageModal === 'profit' && (
               appSettings.profitImages.length > 0 ? (
                 appSettings.profitImages.map((url, i) => (
-                  <img key={i} src={url} alt={`Profit Table ${i}`} className="w-full max-w-lg rounded-xl object-contain" />
+                  <img key={i} src={url} alt={`Profit Table ${i}`} className="w-full max-w-lg rounded-2xl object-contain shadow-2xl" />
                 ))
               ) : (
-                <div className="text-white text-center mt-10">No Profit images uploaded yet.</div>
+                <div className="text-gray-400 text-center mt-10">No Profit images uploaded yet.</div>
               )
             )}
 
             {activeImageModal === 'vip' && (
-              appSettings.vipImage ? (
-                <img src={appSettings.vipImage} alt="VIP Poster" className="w-full max-w-lg rounded-xl object-contain" />
+              appSettings.vipImages.length > 0 ? (
+                appSettings.vipImages.map((url, i) => (
+                  <img key={i} src={url} alt={`VIP Poster ${i}`} className="w-full max-w-lg rounded-2xl object-contain shadow-2xl" />
+                ))
               ) : (
-                <div className="text-white text-center mt-10">No VIP Poster uploaded yet.</div>
+                <div className="text-gray-400 text-center mt-10">No VIP Poster uploaded yet.</div>
               )
             )}
 
@@ -261,20 +360,20 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
         </div>
       )}
 
-      {/* 6. Popup Notification Modal (Carousel) */}
+      {/* 6. Popup Notification Modal */}
       {showNotif && currentNotif && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
             
-            <div className="absolute top-3 left-3 z-10 bg-black/50 text-white text-[10px] font-bold px-2 py-1 rounded-md">
+            <div className="absolute top-4 left-4 z-20 bg-[#1E4E79] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
               {currentNotifIndex + 1} / {activeNotifs.length}
             </div>
-            <button onClick={() => setShowNotif(false)} className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center z-10 transition">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button onClick={() => setShowNotif(false)} className="absolute top-4 right-4 w-8 h-8 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center z-20 transition">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
 
             {currentNotif.imageUrl && (
-              <div className="w-full bg-[#B519FF]/10 flex items-center justify-center min-h-[200px] overflow-hidden">
+              <div className="w-full bg-[#F8F9FA] flex items-center justify-center min-h-[200px] overflow-hidden">
                 <img 
                   src={currentNotif.imageUrl} 
                   alt="Notification Banner" 
@@ -284,21 +383,22 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
             )}
 
             {(currentNotif.titleEn || currentNotif.contentEn || currentNotif.titleAm || currentNotif.contentAm) && (
-              <div className="p-5 text-center overflow-y-auto">
+              <div className="p-6 text-center overflow-y-auto custom-scrollbar">
                 {(currentNotif.titleEn || currentNotif.titleAm) && (
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  <h3 className="text-xl font-black text-gray-900 mb-2 leading-tight">
                     {isAmharic ? currentNotif.titleAm : currentNotif.titleEn}
                   </h3>
                 )}
                 {(currentNotif.contentEn || currentNotif.contentAm) && (
-                  <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap">
+                  <p className="text-sm text-gray-600 mb-6 whitespace-pre-wrap leading-relaxed">
                     {isAmharic ? currentNotif.contentAm : currentNotif.contentEn}
                   </p>
                 )}
                 
-                <button onClick={dismissNotif} className="w-full bg-[#1A1A1A] text-white py-3 rounded-lg font-bold hover:bg-black transition mt-2">
+                {/* ✅ Changed button color to deep blue gradient */}
+                <button onClick={dismissNotif} className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white py-3.5 rounded-xl font-bold hover:opacity-95 transition shadow-lg active:scale-95">
                   {currentNotifIndex < activeNotifs.length - 1 
-                    ? (isAmharic ? 'ቀጣይ' : 'Next') 
+                    ? (isAmharic ? 'ቀጣይ' : 'Next Notice') 
                     : (isAmharic ? 'ዝጋ' : 'Close')}
                 </button>
               </div>
@@ -306,9 +406,10 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
 
             {!(currentNotif.titleEn || currentNotif.contentEn || currentNotif.titleAm || currentNotif.contentAm) && (
               <div className="p-4 bg-white">
-                <button onClick={dismissNotif} className="w-full bg-[#1A1A1A] text-white py-3 rounded-lg font-bold hover:bg-black transition">
+                {/* ✅ Changed button color to deep blue gradient */}
+                <button onClick={dismissNotif} className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white py-3.5 rounded-xl font-bold hover:opacity-95 transition shadow-lg active:scale-95">
                   {currentNotifIndex < activeNotifs.length - 1 
-                    ? (isAmharic ? 'ቀጣይ' : 'Next') 
+                    ? (isAmharic ? 'ቀጣይ' : 'Next Notice') 
                     : (isAmharic ? 'ዝጋ' : 'Close')}
                 </button>
               </div>

@@ -55,7 +55,7 @@ export default function UserJobs({ params }: { params: Promise<{ locale: string 
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
@@ -64,9 +64,9 @@ export default function UserJobs({ params }: { params: Promise<{ locale: string 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
@@ -78,11 +78,11 @@ export default function UserJobs({ params }: { params: Promise<{ locale: string 
           </p>
         </div>
 
-        {/* Balance Header */}
-        <div className="bg-gradient-to-br from-black to-gray-800 text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden group w-full md:w-auto">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
+        {/* ✅ Balance Header - Updated to Deep Blue Gradient */}
+        <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden group w-full md:w-auto">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
           <div className="relative z-10">
-            <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
+            <p className="text-xs text-blue-100 uppercase font-bold tracking-wider mb-1">
               {isAmharic ? 'ያለዎት ቀሪ ሂሳብ' : 'Available Balance'}
             </p>
             <p className="text-3xl font-black tracking-tight">ETB {userData?.user?.walletBalance || '0.00'}</p>
@@ -115,14 +115,15 @@ export default function UserJobs({ params }: { params: Promise<{ locale: string 
       {/* ✅ Changed to grid-cols-2 for 2 columns */}
       <div className="grid grid-cols-2 gap-3 md:gap-6 relative z-10">
         {jobs.map((job: any) => (
-          <div key={job.id} className="bg-white/95 backdrop-blur-md p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#B519FF]/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between">
+          <div key={job.id} className="bg-white/95 backdrop-blur-md p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#1E4E79]/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between">
             <div>
               <div className="flex flex-col md:flex-row justify-between items-start mb-3 md:mb-4 gap-2">
                 <div>
-                  <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-[#B519FF] transition-colors leading-tight">{job.name}</h3>
+                  <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-[#1E4E79] transition-colors leading-tight">{job.name}</h3>
                   <p className="text-[10px] md:text-sm text-gray-500 mt-1 line-clamp-2">{job.description}</p>
                 </div>
-                <div className="bg-purple-50 text-[#B519FF] px-2 py-1 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap shadow-sm">
+                {/* ✅ Updated price badge to Deep Blue */}
+                <div className="bg-blue-50 text-[#1E4E79] px-2 py-1 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap shadow-sm">
                   ETB {job.price}
                 </div>
               </div>
@@ -133,7 +134,7 @@ export default function UserJobs({ params }: { params: Promise<{ locale: string 
                 </div>
                 <div className="md:text-right">
                   <p className="text-[8px] md:text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-0.5 md:mb-1">{isAmharic ? 'ያግኙ' : 'Earn'}</p>
-                  <p className="font-bold text-emerald-600">ETB {job.rewardPerTask} <span className="text-[10px] font-medium text-emerald-600/70">/ {isAmharic ? 'ቪዲዮ' : 'video'}</span></p>
+                  <p className="font-bold text-[#1E4E79]">ETB {job.rewardPerTask} <span className="text-[10px] font-medium text-[#1E4E79]/70">/ {isAmharic ? 'ቪዲዮ' : 'video'}</span></p>
                 </div>
               </div>
             </div>
@@ -144,7 +145,7 @@ export default function UserJobs({ params }: { params: Promise<{ locale: string 
               className={`w-full py-2 md:py-3 rounded-xl text-xs md:text-base font-bold transition-all ${
                 hasActiveJob 
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-black text-white hover:bg-[#B519FF] hover:shadow-lg'
+                  : 'bg-[#1E4E79] text-white hover:bg-[#15608D] hover:shadow-lg'
               }`}
             >
               {hasActiveJob 

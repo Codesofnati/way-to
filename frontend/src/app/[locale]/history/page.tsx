@@ -40,21 +40,23 @@ export default function UserHistory({ params }: { params: Promise<{ locale: stri
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center justify-center pt-6">
         <div className="relative">
-          <div className="absolute inset-0 bg-[#B519FF] blur-xl opacity-40 rounded-[1.5rem]"></div>
-          <div className="w-20 h-20 bg-gradient-to-tr from-[#B519FF] to-purple-400 rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
+          {/* ✅ Glow updated to deep blue */}
+          <div className="absolute inset-0 bg-[#1E4E79] blur-xl opacity-40 rounded-[1.5rem]"></div>
+          {/* ✅ Updated gradient */}
+          <div className="w-20 h-20 bg-gradient-to-tr from-[#1E4E79] to-[#15608D] rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           </div>
         </div>
@@ -66,17 +68,17 @@ export default function UserHistory({ params }: { params: Promise<{ locale: stri
         </p>
       </div>
 
-      {/* Tabs */}
+      {/* ✅ Tabs - Updated active state to Deep Blue */}
       <div className="bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-gray-100 inline-flex w-full max-w-sm mx-auto relative z-10">
         <button 
           onClick={() => setActiveTab('deposits')}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'deposits' ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
+          className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'deposits' ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
         >
           {isAmharic ? 'ማስገቢያዎች' : 'Deposits'}
         </button>
         <button 
           onClick={() => setActiveTab('withdrawals')}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'withdrawals' ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
+          className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'withdrawals' ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
         >
           {isAmharic ? 'ማውጣቶች' : 'Withdrawals'}
         </button>
@@ -140,7 +142,8 @@ export default function UserHistory({ params }: { params: Promise<{ locale: stri
                 <div>
                   <p className="font-black text-xl text-gray-900">ETB {wd.amountRequested}</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {isAmharic ? 'የሚቀበሉት:' : 'You Receive:'} <span className="font-black text-emerald-600">ETB {wd.amountToReceive}</span>
+                    {isAmharic ? 'የሚቀበሉት:' : 'You Receive:'} {/* ✅ Updated receive amount to deep blue */}
+                    <span className="font-black text-[#1E4E79] ml-1">ETB {wd.amountToReceive}</span>
                   </p>
                   <p className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mt-2">{new Date(wd.createdAt).toLocaleString()}</p>
                 </div>

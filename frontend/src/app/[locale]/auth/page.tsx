@@ -96,23 +96,19 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
       
       <button 
         onClick={toggleLanguage} 
-        className="absolute top-6 right-6 z-50 bg-purple-50 text-[#B519FF] px-4 py-2 rounded-xl text-xs font-bold shadow-sm border border-purple-100 hover:bg-purple-100 transition-colors"
+        className="absolute top-6 right-6 z-50 bg-blue-50 text-[#1E4E79] px-4 py-2 rounded-xl text-xs font-bold shadow-sm border border-blue-100 hover:bg-blue-100 transition-colors"
       >
         {isAmharic ? 'English' : 'አማርኛ'}
       </button>
 
-      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Updated ambient glows to match the rich blue */}
+      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="max-w-md w-full relative z-10">
         
         <div className="flex flex-col items-center justify-center mb-8">
-          <div className="relative">
-            <div className="absolute inset-0 bg-[#B519FF] blur-xl opacity-40 rounded-[1.5rem]"></div>
-            <div className="w-16 h-16 bg-gradient-to-tr from-[#B519FF] to-purple-400 rounded-[1.25rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-4 transform transition hover:scale-105 duration-300">
-              <span className="text-white text-2xl font-black drop-shadow-md">W</span>
-            </div>
-          </div>
+        
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight text-center">
             {isSignup ? (isAmharic ? 'መመዝገቢያ' : 'Create Account') : (isAmharic ? 'እንኳን ደህና መጡ' : 'Welcome Back')}
           </h1>
@@ -141,7 +137,7 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                     type="tel" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#B519FF] focus:bg-white transition-all"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1E4E79] focus:bg-white transition-all"
                     required 
                   />
                   {!phone && (
@@ -167,7 +163,7 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                     type="password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#B519FF] focus:bg-white transition-all"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1E4E79] focus:bg-white transition-all"
                     required 
                   />
                   {!password && (
@@ -195,7 +191,7 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                         type="password" 
                         value={confirmPassword} 
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#B519FF] focus:bg-white transition-all"
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1E4E79] focus:bg-white transition-all"
                         required 
                       />
                       {!confirmPassword && (
@@ -216,9 +212,9 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                       type="text" 
                       value={invitedBy} 
                       readOnly
-                      className="w-full p-4 bg-purple-50 border border-purple-100 text-[#B519FF] font-mono rounded-2xl text-sm outline-none cursor-not-allowed"
+                      className="w-full p-4 bg-blue-50/50 border border-blue-100 text-[#1E4E79] font-mono rounded-2xl text-sm outline-none cursor-not-allowed"
                     />
-                    <p className="text-xs text-[#B519FF] mt-2 font-bold flex items-center gap-1">
+                    <p className="text-xs text-[#1E4E79] mt-2 font-bold flex items-center gap-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                       {isAmharic ? 'በጓደኛዎ ተጋብዘዋል!' : 'You were invited by a friend!'}
                     </p>
@@ -227,10 +223,11 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
               </>
             )}
 
+            {/* ✅ Updated to use the exact gradient from your image */}
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-[#B519FF] text-white p-4 rounded-2xl font-bold hover:bg-purple-600 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-2 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-4 rounded-2xl font-bold hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none mt-2 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -245,7 +242,7 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
 
           <button 
             onClick={() => setIsSignup(!isSignup)}
-            className="w-full mt-6 text-sm text-gray-500 hover:text-[#B519FF] transition-colors text-center block font-medium"
+            className="w-full mt-6 text-sm text-gray-500 hover:text-[#1E4E79] transition-colors text-center block font-medium"
           >
             {isSignup 
               ? (isAmharic ? 'መለያ አለዎት? ይግቡ' : 'Already have an account? Login') 

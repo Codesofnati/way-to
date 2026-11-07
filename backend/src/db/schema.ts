@@ -277,7 +277,19 @@ export const globalNotifications = pgTable('global_notifications', {
 // ✅ NEW: Dynamic App Settings (Profit & VIP images)
 export const appSettings = pgTable('app_settings', {
   id: text('id').primaryKey().default('global'),
-  profitImages: text('profit_images').default('[]').notNull(), // JSON array of URLs
-  vipImage: text('vip_image').default('').notNull(),
+  profitImages: text('profit_images').default('[]').notNull(),
+  
+  // ✅ Changed from vipImage to vipImages to store multiple URLs
+  vipImages: text('vip_images').default('[]').notNull(), 
+  
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+// ✅ NEW: Top Banners
+export const topBanners = pgTable('top_banners', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  title: text('title'),           // Optional text title
+  subtitle: text('subtitle'),     // Optional text subtitle
+  imageUrl: text('image_url'),    // Optional image
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });

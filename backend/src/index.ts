@@ -14,7 +14,8 @@ import { profiles, notifications, payments, reports, withdrawals,
    dailyVideos,
    globalNotifications,
    stories,
-   appSettings} from './db/schema';
+   appSettings,
+   topBanners} from './db/schema';
 
    // ✅ ADD THIS NEW HELPER FUNCTION HERE
 function getDb(databaseUrl: string) {
@@ -1939,22 +1940,42 @@ app.post('/api/user/:id/withdraw', async (c) => {
   const db = getDb(c.env.DATABASE_URL);
 
   try {
-    // ✅ 1. TIME RESTRICTION CHECK (8 AM to 4 PM)
-   // ✅ NEW (Forces Ethiopian Time UTC+3)
-const now = new Date();
-const ethiopianHour = (now.getUTCHours() + 3) % 24;
+    // ✅ 1. TIME RESTRICTION CHECK (8 AM to 4 PM Ethiopian Time)
+    const now = new Date();
+    const ethiopianHour = (now.getUTCHours() + 3) % 24;
 
-// Allow only between 8:00 AM and 3:59 PM
-if (ethiopianHour < 8 || ethiopianHour >= 16) {
-  return c.json({ 
-    success: false, 
-    error: 'Withdrawals are currently closed. Open daily from 8:00 AM to 4:00 PM.' 
-  }, 403);
-}
+    if (ethiopianHour < 8 || ethiopianHour >= 16) {
+      return c.json({ 
+        success: false, 
+        error: 'Withdrawals are currently closed. Open daily from 8:00 AM to 4:00 PM.' 
+      }, 403);
+    }
 
-    // ... (rest of the code remains exactly the same)
+    // ✅ 2. DAILY LIMIT CHECK (One withdrawal per day)
+    // Get today's date in Ethiopian time as YYYY-MM-DD
+    const ethiopianTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const todayStr = ethiopianTime.toISOString().split('T')[0];
 
-    // ✅ 2. FETCH DATA & VALIDATE
+    const startOfDay = new Date(`${todayStr}T00:00:00.000Z`);
+    const endOfDay = new Date(`${todayStr}T23:59:59.999Z`);
+
+    const existingToday = await db.select()
+      .from(withdrawalRequests)
+      .where(and(
+        eq(withdrawalRequests.userId, userId),
+        gte(withdrawalRequests.createdAt, startOfDay),
+        lte(withdrawalRequests.createdAt, endOfDay)
+      ))
+      .limit(1);
+
+    if (existingToday.length > 0) {
+      return c.json({ 
+        success: false, 
+        error: 'You cannot withdraw more than once per day. Please try again tomorrow.' 
+      }, 403);
+    }
+
+    // ✅ 3. FETCH DATA & VALIDATE
     const user = (await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1))[0];
     const settings = (await db.select().from(withdrawSettings).limit(1))[0];
     const bank = (await db.select().from(userBankDetails).where(eq(userBankDetails.userId, userId)).limit(1))[0];
@@ -1963,7 +1984,7 @@ if (ethiopianHour < 8 || ethiopianHour >= 16) {
     if (!bank) return c.json({ success: false, error: 'Please add your bank information first.' }, 400);
     if (parseFloat(user.walletBalance) < parseFloat(amount)) return c.json({ success: false, error: 'Insufficient balance' }, 400);
 
-    // ✅ 3. CALCULATE TAX
+    // ✅ 4. CALCULATE TAX
     const taxAmount = (parseFloat(amount) * (parseFloat(settings.taxPercent) / 100)).toFixed(2);
     const amountToReceive = (parseFloat(amount) - parseFloat(taxAmount)).toFixed(2);
 
@@ -1973,12 +1994,12 @@ if (ethiopianHour < 8 || ethiopianHour >= 16) {
       accountNumber: bank.accountNumber
     });
 
-    // ✅ 4. DEDUCT WALLET
+    // ✅ 5. DEDUCT WALLET
     await db.update(profiles).set({ 
       walletBalance: (parseFloat(user.walletBalance) - parseFloat(amount)).toFixed(2) 
     }).where(eq(profiles.id, userId));
 
-    // ✅ 5. CREATE REQUEST
+    // ✅ 6. CREATE REQUEST
     const newRequest = await db.insert(withdrawalRequests).values({
       userId, 
       amountRequested: amount, 
@@ -2354,7 +2375,8 @@ app.delete('/api/super-admin/system-settings/youtube', async (c) => {
 // Super Admin: Create a daily video (applies to ALL jobs for that date)
 app.post('/api/super-admin/daily-videos', async (c) => {
   try {
-    const { title, youtubeUrl, fakeLikes, scheduledDate } = await c.req.json();
+    // ✅ Add requiresSubscription to destructuring
+    const { title, youtubeUrl, fakeLikes, scheduledDate, requiresSubscription } = await c.req.json();
     const db = getDb(c.env.DATABASE_URL);
 
     // Auto-extract YouTube thumbnail
@@ -2376,6 +2398,7 @@ app.post('/api/super-admin/daily-videos', async (c) => {
       thumbnailUrl,
       fakeLikes: parseInt(fakeLikes) || 0,
       scheduledDate: dateStr,
+      requiresSubscription: requiresSubscription === true,  // ✅ Save it!
     }).returning();
 
     return c.json({ success: true, video: newVideo[0] }, 201);
@@ -2534,21 +2557,21 @@ app.post('/api/admin/withdrawals/:id/lock', async (c) => {
 
 // Public: Get Settings
 
+// Public: Get Settings
 app.get('/api/app-settings', async (c) => {
   try {
     const db = getDb(c.env.DATABASE_URL);
     let settings = (await db.select().from(appSettings).limit(1))[0];
     
     if (!settings) {
-      // Create default if doesn't exist
       settings = (await db.insert(appSettings).values({ id: 'global' }).returning())[0];
     }
     
     return c.json({ 
       success: true, 
       settings: {
-        profitImages: JSON.parse(settings.profitImages),
-        vipImage: settings.vipImage
+        profitImages: JSON.parse(settings.profitImages || '[]'),
+        vipImages: JSON.parse(settings.vipImages || '[]') // ✅ Parse array
       } 
     }, 200);
   } catch (err: any) {
@@ -2559,20 +2582,24 @@ app.get('/api/app-settings', async (c) => {
 // Super Admin: Update Settings
 app.put('/api/super-admin/app-settings', async (c) => {
   try {
-    const { profitImages, vipImage } = await c.req.json();
+    const { profitImages, vipImages } = await c.req.json(); // ✅ Expect vipImages array
     const db = getDb(c.env.DATABASE_URL);
     
     const existing = await db.select().from(appSettings).limit(1);
     
     if (existing.length > 0) {
       await db.update(appSettings)
-        .set({ profitImages: JSON.stringify(profitImages), vipImage, updatedAt: new Date() })
+        .set({ 
+          profitImages: JSON.stringify(profitImages), 
+          vipImages: JSON.stringify(vipImages), // ✅ Stringify array
+          updatedAt: new Date() 
+        })
         .where(eq(appSettings.id, 'global'));
     } else {
       await db.insert(appSettings).values({ 
         id: 'global', 
         profitImages: JSON.stringify(profitImages), 
-        vipImage 
+        vipImages: JSON.stringify(vipImages) // ✅ Stringify array
       });
     }
     
@@ -2630,6 +2657,53 @@ app.delete('/api/super-admin/notifications/:id', async (c) => {
     const db = getDb(c.env.DATABASE_URL);
     await db.delete(globalNotifications).where(eq(globalNotifications.id, id));
     return c.json({ success: true, message: 'Notification deleted' }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+
+// Public: Get Active Banner (returns latest active one)
+app.get('/api/top-banner', async (c) => {
+  try {
+    const db = getDb(c.env.DATABASE_URL);
+    const banner = await db.select().from(topBanners)
+      .where(eq(topBanners.isActive, true))
+      .orderBy(desc(topBanners.createdAt))
+      .limit(1);
+
+    return c.json({ success: true, banner: banner[0] || null }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Create/Update Banner
+app.post('/api/super-admin/top-banner', async (c) => {
+  try {
+    const { title, subtitle, imageUrl } = await c.req.json();
+    const db = getDb(c.env.DATABASE_URL);
+    
+    // Deactivate all old banners first
+    await db.update(topBanners).set({ isActive: false });
+
+    // Insert the new banner
+    const newBanner = await db.insert(topBanners).values({
+      title, subtitle, imageUrl, isActive: true
+    }).returning();
+
+    return c.json({ success: true, banner: newBanner[0] }, 201);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400);
+  }
+});
+
+// Super Admin: Delete/Remove Banner
+app.delete('/api/super-admin/top-banner', async (c) => {
+  try {
+    const db = getDb(c.env.DATABASE_URL);
+    await db.update(topBanners).set({ isActive: false });
+    return c.json({ success: true, message: 'Banner removed' }, 200);
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400);
   }

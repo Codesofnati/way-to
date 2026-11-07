@@ -31,7 +31,7 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B519FF]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E4E79]"></div>
     </div>
   );
   if (!userData) return <div className="p-8 text-center text-red-600">{isAmharic ? 'ውሂብ መጫን አልተቻለም።' : 'Failed to load data.'}</div>;
@@ -47,9 +47,9 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
   return (
     <div className="space-y-8 max-w-3xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* Decorative Background Blur */}
-      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#B519FF]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10">
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">
@@ -60,8 +60,8 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
         </p>
       </div>
 
-      {/* Referral Link Box */}
-      <div className="bg-gradient-to-br from-[#B519FF] to-purple-700 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
+      {/* ✅ Referral Link Box - Updated to Deep Blue Gradient */}
+      <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
         
         <div className="relative z-10">
@@ -69,7 +69,7 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
             {isAmharic ? 'የእርስዎ የጋበዣ ሊንክ' : 'Your Invite Link'}
           </h2>
-          <p className="text-purple-100 text-sm mb-6">
+          <p className="text-blue-100 text-sm mb-6">
             {isAmharic ? 'ይህን ሊንክ ለጓደኞችዎ ያጋሩ እና ወደ ኔትወርክዎ ያክሏቸው።' : 'Share this link with friends to add them to your network.'}
           </p>
           
@@ -83,7 +83,7 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
             <button 
               onClick={handleCopy} 
               className={`px-8 py-4 rounded-2xl font-bold text-sm transition-all shadow-lg whitespace-nowrap flex items-center justify-center gap-2 ${
-                copied ? 'bg-emerald-400 text-white' : 'bg-white text-[#B519FF] hover:bg-gray-100'
+                copied ? 'bg-emerald-400 text-white' : 'bg-white text-[#1E4E79] hover:bg-gray-100'
               }`}
             >
               {copied ? (
@@ -104,14 +104,14 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
         
-        {/* Level 1 Tree */}
-        <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#B519FF]/30 hover:shadow-md transition-all duration-300">
+        {/* ✅ Level 1 Tree - Updated to Deep Blue */}
+        <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#1E4E79]/30 hover:shadow-md transition-all duration-300">
           <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider flex justify-between items-center">
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#B519FF]"></span>
+              <span className="w-2 h-2 rounded-full bg-[#1E4E79]"></span>
               {isAmharic ? 'የደረጃ 1 ኔትወርክ' : 'Level 1 Network'}
             </span>
-            <span className="text-[#B519FF] bg-purple-50 px-3 py-1 rounded-lg text-xs">
+            <span className="text-[#1E4E79] bg-blue-50 px-3 py-1 rounded-lg text-xs">
               {userData.referrals.level1.length} {isAmharic ? 'ተጠቃሚዎች' : 'Users'}
             </span>
           </h3>
@@ -124,7 +124,7 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
               userData.referrals.level1.map((ref: any) => (
                 <div key={ref.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 flex justify-between items-center text-sm hover:shadow-sm hover:border-gray-200 transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#B519FF] to-purple-400 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#1E4E79] to-[#15608D] flex items-center justify-center text-white font-bold text-sm shadow-sm">
                       {ref.name ? ref.name.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div>
@@ -138,14 +138,14 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
           </div>
         </div>
 
-        {/* Level 2 Tree */}
-        <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-emerald-500/30 hover:shadow-md transition-all duration-300">
+        {/* ✅ Level 2 Tree - Updated to lighter blue accent to distinguish from Level 1 */}
+        <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:border-[#15608D]/30 hover:shadow-md transition-all duration-300">
           <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider flex justify-between items-center">
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="w-2 h-2 rounded-full bg-[#15608D]"></span>
               {isAmharic ? 'የደረጃ 2 ኔትወርክ' : 'Level 2 Network'}
             </span>
-            <span className="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg text-xs">
+            <span className="text-[#15608D] bg-blue-50 px-3 py-1 rounded-lg text-xs">
               {userData.referrals.level2.length} {isAmharic ? 'ተጠቃሚዎች' : 'Users'}
             </span>
           </h3>
@@ -158,7 +158,7 @@ export default function UserReferrals({ params }: { params: Promise<{ locale: st
               userData.referrals.level2.map((ref: any) => (
                 <div key={ref.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-100 flex justify-between items-center text-sm hover:shadow-sm hover:border-gray-200 transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#15608D] to-[#1E4E79] flex items-center justify-center text-white font-bold text-sm shadow-sm">
                       {ref.name ? ref.name.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div>
