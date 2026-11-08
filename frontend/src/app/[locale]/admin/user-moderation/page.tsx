@@ -106,23 +106,33 @@ export default function UserModeration({ params }: { params: Promise<{ locale: s
           <p className="text-4xl font-black text-white">{totalUsers}</p>
         </div>
 
+        {/* ✅ Richest User Card - Now shows phone number */}
         <div className="bg-[#131825] p-6 rounded-3xl border border-gray-800 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl"></div>
           <h3 className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Richest User</h3>
           {richestUser ? (
             <>
-              <p className="text-lg font-bold text-emerald-400 truncate">{richestUser.name || richestUser.phone}</p>
+              <p className="text-lg font-bold text-emerald-400 truncate">{richestUser.name || 'No Name'}</p>
+              <p className="text-xs font-mono text-gray-300 mt-1 flex items-center gap-1">
+                <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                {richestUser.phone || 'No Phone'}
+              </p>
               <p className="text-sm font-black text-white mt-1">ETB {richestUser.walletBalance}</p>
             </>
           ) : <p className="text-sm text-gray-500 mt-2">No users yet.</p>}
         </div>
 
+        {/* ✅ Top Inviter Card - Now shows phone number */}
         <div className="bg-[#131825] p-6 rounded-3xl border border-gray-800 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#B519FF]/10 rounded-full blur-2xl"></div>
           <h3 className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Top Inviter</h3>
           {bestInviter ? (
             <>
-              <p className="text-lg font-bold text-[#B519FF] truncate">{bestInviter.name || bestInviter.phone}</p>
+              <p className="text-lg font-bold text-[#B519FF] truncate">{bestInviter.name || 'No Name'}</p>
+              <p className="text-xs font-mono text-gray-300 mt-1 flex items-center gap-1">
+                <svg className="w-3 h-3 text-[#B519FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                {bestInviter.phone || 'No Phone'}
+              </p>
               <p className="text-sm font-black text-white mt-1">{bestInviter.invitedCount || 0} Invites</p>
             </>
           ) : <p className="text-sm text-gray-500 mt-2">No inviters yet.</p>}
