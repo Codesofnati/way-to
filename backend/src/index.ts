@@ -23,10 +23,28 @@ function getDb(databaseUrl: string) {
   return drizzle(client);
 }
 
-
 type Bindings = { DATABASE_URL: string; };
 const app = new Hono<{ Bindings: Bindings }>();
-app.use('/*', cors());
+
+// ✅ Only allow specific origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://www.welynto.com',
+  'https://welynto.com', // optional: also allow without www
+];
+
+app.use('/*', cors({
+  origin: (origin) => {
+    // Allow requests with no origin (e.g., curl, mobile apps)
+    if (!origin) return origin;
+    
+    // Check if origin is in the allowed list
+    return allowedOrigins.includes(origin) ? origin : null;
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // --- UTILS ---
 async function hashPassword(password: string): Promise<string> {
