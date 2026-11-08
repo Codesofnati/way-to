@@ -11,6 +11,12 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // ✅ NEW: Custom message state
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  // ✅ NEW: Confirmation state instead of window.confirm
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const [formData, setFormData] = useState({ bankId: '', accountHolderName: '', accountNumber: '' });
 
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
@@ -30,11 +36,30 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
     }).finally(() => setLoading(false));
   }, [router, locale, user.id, apiUrl]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!confirm(isAmharic ? 'ማስጠንቀቂያ፡ የባንክ መረጃ ከተቀመጠ በኋላ መቀየር አይቻልም። ይህ ትክክል መሆኑን እርግጠኛ ነዎት?' : 'WARNING: Bank information cannot be modified after saving. Are you sure this is correct?')) return;
+    setMessage({ text: '', type: '' });
 
+    // ✅ Client-side Validation
+    if (!formData.bankId) {
+      return setMessage({ text: isAmharic ? 'እባክዎ ባንክ ይምረጡ።' : 'Please select a bank.', type: 'error' });
+    }
+    if (formData.accountHolderName.trim().length < 3) {
+      return setMessage({ text: isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ።' : 'Please enter your full name.', type: 'error' });
+    }
+    if (formData.accountNumber.trim().length < 5) {
+      return setMessage({ text: isAmharic ? 'የሂሳብ ቁጥሩ ትክክል አይመስልም።' : 'Account number seems too short.', type: 'error' });
+    }
+
+    // Show custom confirmation instead of window.confirm
+    setShowConfirm(true);
+  };
+
+  const confirmSave = async () => {
+    setShowConfirm(false);
     setSubmitting(true);
+    setMessage({ text: '', type: '' });
+
     try {
       const res = await fetch(`${apiUrl}/api/user/${user.id}/bank-details`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -43,10 +68,16 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      alert(isAmharic ? 'የባንክ መረጃ በተሳካ ሁኔታ ተቀምጧል!' : 'Bank information saved successfully!');
-      setMyBankDetails(data.details);
+      // ✅ Show success message
+      setMessage({ text: isAmharic ? 'የባንክ መረጃ በተሳካ ሁኔታ ተቀምጧል!' : 'Bank information saved successfully!', type: 'success' });
+      
+      // Wait a moment before showing the locked view so they can read the success message
+      setTimeout(() => {
+        setMyBankDetails(data.details);
+      }, 1500);
+
     } catch (err: any) {
-      alert(err.message);
+      setMessage({ text: err.message, type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -61,15 +92,13 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
   return (
     <div className="space-y-8 max-w-2xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
+      {/* Decorative Background Blur */}
       <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
       <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center justify-center pt-6">
         <div className="relative">
-          {/* ✅ Glow updated to deep blue */}
           <div className="absolute inset-0 bg-[#1E4E79] blur-xl opacity-40 rounded-[1.5rem]"></div>
-          {/* ✅ Updated gradient & icon style */}
           <div className="w-20 h-20 bg-gradient-to-tr from-[#1E4E79] to-[#15608D] rounded-[1.5rem] flex items-center justify-center shadow-lg border-2 border-white relative z-10 mb-3 transform transition hover:scale-105 duration-300">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
           </div>
@@ -87,7 +116,6 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-blue-100 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           
           <div className="flex items-center justify-center flex-col gap-3 mb-8">
-            {/* ✅ Updated success check to deep blue gradient */}
             <div className="w-16 h-16 bg-gradient-to-tr from-[#1E4E79] to-[#15608D] text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-900/30">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
@@ -105,7 +133,6 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
             <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 col-span-1 md:col-span-2">
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የባንክ ስም' : 'Bank Name'}</p>
               <p className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                {/* ✅ Updated icon color to deep blue */}
                 <svg className="w-5 h-5 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 {myBankDetails.bankName}
               </p>
@@ -114,7 +141,6 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የሂሳብ ባለቤት ስም' : 'Account Holder Name'}</p>
               <p className="font-bold text-gray-900">{myBankDetails.accountHolderName}</p>
             </div>
-            {/* ✅ Updated account number box to deep blue */}
             <div className="bg-blue-50/80 p-4 rounded-2xl border border-blue-100">
               <p className="text-[10px] text-[#1E4E79] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}</p>
               <p className="font-mono font-black text-[#1E4E79] text-lg tracking-wider">{myBankDetails.accountNumber}</p>
@@ -131,7 +157,29 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
       ) : (
         /* ✅ FORM MODE */
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100 relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* ✅ NEW: Custom Message Display */}
+          {message.text && (
+            <div className={`mb-6 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+              message.type === 'error' 
+                ? 'bg-red-50 border border-red-200 text-red-700' 
+                : 'bg-green-50 border border-green-200 text-green-700'
+            }`}>
+              {message.type === 'error' ? (
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              ) : (
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              )}
+              <div className="flex-1 text-sm font-medium">
+                {message.text}
+              </div>
+              <button type="button" onClick={() => setMessage({ text: '', type: '' })} className="opacity-50 hover:opacity-100 transition-opacity">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleFormSubmit} className="space-y-6">
             
             <div className="bg-orange-50/80 p-5 rounded-2xl border border-orange-100 flex items-start gap-3 mb-2">
               <svg className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -142,7 +190,6 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase mb-2 flex items-center gap-1.5">
-                {/* ✅ Updated icon colors to deep blue */}
                 <svg className="w-4 h-4 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 {isAmharic ? 'ባንክ ይምረጡ' : 'Choose Bank'}
               </label>
@@ -150,7 +197,6 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
                 value={formData.bankId} 
                 onChange={e => setFormData({...formData, bankId: e.target.value})} 
                 className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all"
-                required
               >
                 <option value="" disabled className="text-gray-400">{isAmharic ? 'ባንክ ይምረጡ...' : 'Select a bank...'}</option>
                 {banks.map(bank => (
@@ -170,7 +216,6 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
                 onChange={e => setFormData({...formData, accountHolderName: e.target.value})} 
                 placeholder={isAmharic ? 'በባንክ ሂሳብ ላይ ያለው ትክክለኛ ስም' : 'Exact name on bank account'}
                 className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
-                required
               />
             </div>
 
@@ -185,11 +230,9 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
                 onChange={e => setFormData({...formData, accountNumber: e.target.value})} 
                 placeholder={isAmharic ? 'የባንክ ሂሳብ ቁጥርዎ' : 'Your bank account number'}
                 className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
-                required
               />
             </div>
 
-            {/* ✅ Updated submit button to deep blue gradient */}
             <button 
               type="submit" 
               disabled={submitting} 
@@ -208,6 +251,39 @@ export default function UserBankInfo({ params }: { params: Promise<{ locale: str
               )}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* ✅ NEW: Custom Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              {isAmharic ? 'እርግጠኛ ነዎት?' : 'Are you sure?'}
+            </h3>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              {isAmharic 
+                ? 'ማስጠንቀቂያ፡ የባንክ መረጃ ከተቀመጠ በኋላ መቀየር አይቻልም። ይህ ትክክል መሆኑን እርግጠኛ ነዎት?' 
+                : 'WARNING: Bank information cannot be modified after saving. Are you sure this is correct?'}
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
+              >
+                {isAmharic ? 'ሰርዝ' : 'Cancel'}
+              </button>
+              <button 
+                onClick={confirmSave}
+                className="flex-1 py-3 px-4 bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white font-bold rounded-xl hover:opacity-95 transition shadow-lg"
+              >
+                {isAmharic ? 'አረጋግጥ' : 'Confirm & Save'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

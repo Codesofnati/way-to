@@ -11,6 +11,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userRole, setUserRole] = useState<string>('user');
   const [userName, setUserName] = useState<string>('');
   
+  // ✅ NEW: State for custom logout confirmation
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   // 5-Minute Session Timer
   const { formattedTime } = useSessionTimeout(5); 
 
@@ -39,9 +42,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [pathname]);
 
-  const handleLogout = () => {
+  const executeLogout = () => {
     localStorage.removeItem('user');
     setIsLoggedIn(false);
+    setShowLogoutConfirm(false);
     
     if (userRole === 'admin' || userRole === 'super_admin') {
       router.push(`/${currentLocale}/admin/login`);
@@ -183,7 +187,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
             <button 
-              onClick={handleLogout} 
+              onClick={() => setShowLogoutConfirm(true)} 
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 text-red-400 text-sm font-bold rounded-xl hover:bg-red-500/20 transition-colors border border-red-500/20"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
@@ -291,6 +295,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              </div>
             <span className="text-[10px] font-bold">{isAmharic ? 'የእኔ' : 'Mine'}</span>
           </Link>
+        </div>
+      )}
+
+      {/* ✅ NEW: Custom Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              {isAmharic ? 'ውጣት' : 'Sign Out'}
+            </h3>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              {isAmharic 
+                ? 'እርግጠኛ ነዎት መውጣት ይፈልጋሉ?' 
+                : 'Are you sure you want to sign out?'}
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
+              >
+                {isAmharic ? 'ሰርዝ' : 'Cancel'}
+              </button>
+              <button 
+                onClick={executeLogout}
+                className="flex-1 py-3 px-4 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition shadow-lg"
+              >
+                {isAmharic ? 'አዎ ውጣ' : 'Yes, Sign Out'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

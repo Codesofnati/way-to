@@ -10,7 +10,7 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
   const [userData, setUserData] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [myRequests, setMyRequests] = useState<any[]>([]);
-  const [bankDetails, setBankDetails] = useState<any>(null); // ✅ Track bank info
+  const [bankDetails, setBankDetails] = useState<any>(null); 
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -18,6 +18,10 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
   // Time Restriction State
   const [isTimeAllowed, setIsTimeAllowed] = useState(false);
   const [timeMessage, setTimeMessage] = useState('');
+
+  // ✅ NEW: Custom Message & Confirmation State
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
@@ -39,7 +43,7 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
         fetch(`${apiUrl}/api/user/${user.id}/dashboard`).then(res => res.json()),
         fetch(`${apiUrl}/api/withdraw-settings`).then(res => res.json()),
         fetch(`${apiUrl}/api/user/${user.id}/my-withdrawals`).then(res => res.json()),
-        fetch(`${apiUrl}/api/user/${user.id}/bank-details`).then(res => res.json()) // ✅ Fetch bank info
+        fetch(`${apiUrl}/api/user/${user.id}/bank-details`).then(res => res.json())
       ]);
       
       if (userRes.success) setUserData(userRes);
@@ -63,13 +67,37 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
     }
   };
 
-  const handleRequest = async () => {
+  const handleInitialCheck = () => {
+    setMessage({ text: '', type: '' });
     if (!selectedAmount) return;
-    if (!isTimeAllowed) return alert(isAmharic ? 'ገንዘብ ማውጣት አሁን ተዘግቷል። እባክዎ በሚፈቀዱ ሰዓታት ውስጥ ይመለሱ።' : 'Withdrawals are currently closed for the day. Please come back during the allowed hours.');
-    if (!bankDetails) return alert(isAmharic ? 'እባክዎ መጀመሪያ የባንክ መረጃዎን ያስገቡ።' : 'Please add your bank information first.');
     
-    if (!confirm(isAmharic ? `እርግጠኛ ነዎት ETB ${selectedAmount} ማውጣት ይፈልጋሉ?` : `Are you sure you want to withdraw ETB ${selectedAmount}?`)) return;
+    if (!isTimeAllowed) {
+      return setMessage({ 
+        text: isAmharic ? 'ገንዘብ ማውጣት አሁን ተዘግቷል። እባክዎ በሚፈቀዱ ሰዓታት ውስጥ ይመለሱ።' : 'Withdrawals are currently closed for the day. Please come back during the allowed hours.', 
+        type: 'error' 
+      });
+    }
+    
+    if (!bankDetails) {
+      return setMessage({ 
+        text: isAmharic ? 'እባክዎ መጀመሪያ የባንክ መረጃዎን ያስገቡ።' : 'Please add your bank information first.', 
+        type: 'error' 
+      });
+    }
 
+    if (parseFloat(userData?.user?.walletBalance || '0') < selectedAmount) {
+      return setMessage({ 
+        text: isAmharic ? 'በቂ የኪስ ቦርሳ ቀሪ ሂሳብ የለዎትም።' : 'Insufficient wallet balance.', 
+        type: 'error' 
+      });
+    }
+
+    // Show custom confirmation modal instead of window.confirm
+    setShowConfirm(true);
+  };
+
+  const confirmWithdrawal = async () => {
+    setShowConfirm(false);
     setSubmitting(true);
     try {
       const res = await fetch(`${apiUrl}/api/user/${user.id}/withdraw`, {
@@ -79,10 +107,15 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      alert(isAmharic ? 'የገንዘብ ማውጣት ጥያቄ ተልኳል! የአድሚን ማረጋገጫ በመጠበቅ ላይ።' : 'Withdrawal request submitted! Waiting for admin approval.');
+      setMessage({ 
+        text: isAmharic ? 'የገንዘብ ማውጣት ጥያቄ ተልኳል! የአድሚን ማረጋገጫ በመጠበቅ ላይ።' : 'Withdrawal request submitted! Waiting for admin approval.', 
+        type: 'success' 
+      });
       setSelectedAmount(null);
       fetchData(); 
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { 
+      setMessage({ text: err.message, type: 'error' }); 
+    }
     finally { setSubmitting(false); }
   };
 
@@ -100,7 +133,6 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
       <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
       <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
@@ -114,7 +146,6 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
           </p>
         </div>
 
-        {/* ✅ Time Restriction Banner - Updated Open state to Deep Blue */}
         <div className={`p-4 rounded-2xl border font-bold text-sm flex items-center gap-2 w-full md:w-auto ${
           isTimeAllowed ? 'bg-blue-50/80 border-blue-200 text-[#1E4E79]' : 'bg-red-50/80 border-red-200 text-red-700'
         }`}>
@@ -123,7 +154,6 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
         </div>
       </div>
 
-      {/* ✅ Main Balance - Updated to Deep Blue Gradient */}
       <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group z-10">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
         <p className="text-xs text-blue-100 uppercase font-bold tracking-wider mb-1">
@@ -132,7 +162,6 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
         <h2 className="text-4xl font-black tracking-tight">ETB {userData?.user?.walletBalance || '0.00'}</h2>
       </div>
 
-      {/* ✅ BANK INFO CHECK */}
       {!bankDetails ? (
         <div className="bg-orange-50/80 backdrop-blur-md p-8 rounded-[2rem] border border-orange-200 text-center relative z-10 shadow-sm">
           <div className="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -159,8 +188,29 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
           
           {/* Request Form */}
           <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-sm border border-gray-100">
+            
+            {/* ✅ NEW: Custom Message Display */}
+            {message.text && (
+              <div className={`mb-6 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+                message.type === 'error' 
+                  ? 'bg-red-50 border border-red-200 text-red-700' 
+                  : 'bg-green-50 border border-green-200 text-green-700'
+              }`}>
+                {message.type === 'error' ? (
+                  <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                ) : (
+                  <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                )}
+                <div className="flex-1 text-sm font-medium">
+                  {message.text}
+                </div>
+                <button type="button" onClick={() => setMessage({ text: '', type: '' })} className="opacity-50 hover:opacity-100 transition-opacity">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            )}
+
             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              {/* ✅ Updated icon background to deep blue */}
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
                 <svg className="w-4 h-4 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               </div>
@@ -171,7 +221,10 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
               {allowedAmounts.map((amount: number) => (
                 <button 
                   key={amount}
-                  onClick={() => setSelectedAmount(amount)}
+                  onClick={() => {
+                    setSelectedAmount(amount);
+                    if (message.text) setMessage({ text: '', type: '' });
+                  }}
                   disabled={!isTimeAllowed}
                   className={`p-4 rounded-2xl font-bold border-2 transition-all ${
                     !isTimeAllowed 
@@ -198,15 +251,13 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
                 </div>
                 <div className="border-t border-gray-200 pt-3 flex justify-between">
                   <span className="font-bold text-gray-900">{isAmharic ? 'የሚቀበሉት' : 'You Will Receive'}</span>
-                  {/* ✅ Updated final receive amount to deep blue */}
                   <span className="font-black text-[#1E4E79] text-lg">ETB {receiveAmount}</span>
                 </div>
               </div>
             )}
 
-            {/* ✅ Updated submit button to deep blue */}
             <button 
-              onClick={handleRequest}
+              onClick={handleInitialCheck}
               disabled={!selectedAmount || submitting || !isTimeAllowed || parseFloat(userData?.user?.walletBalance || '0') < selectedAmount}
               className={`w-full p-4 rounded-2xl font-bold transition-all ${
                 !isTimeAllowed 
@@ -252,6 +303,39 @@ export default function UserWithdraw({ params }: { params: Promise<{ locale: str
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ✅ NEW: Custom Confirmation Modal */}
+      {showConfirm && selectedAmount && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-blue-100 text-[#1E4E79] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              {isAmharic ? 'እርግጠኛ ነዎት?' : 'Confirm Withdrawal'}
+            </h3>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              {isAmharic 
+                ? `እርግጠኛ ነዎት ETB ${selectedAmount} ማውጣት ይፈልጋሉ?` 
+                : `Are you sure you want to withdraw ETB ${selectedAmount}?`}
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
+              >
+                {isAmharic ? 'ሰርዝ' : 'Cancel'}
+              </button>
+              <button 
+                onClick={confirmWithdrawal}
+                className="flex-1 py-3 px-4 bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white font-bold rounded-xl hover:opacity-95 transition shadow-lg"
+              >
+                {isAmharic ? 'አረጋግጥ' : 'Confirm'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

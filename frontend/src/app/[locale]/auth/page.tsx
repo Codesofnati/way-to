@@ -18,6 +18,9 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
   const [invitedBy, setInvitedBy] = useState(refId);
   const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // State for custom messages
+  const [message, setMessage] = useState({ text: '', type: '' }); 
 
   useEffect(() => {
     if (refId) {
@@ -32,12 +35,45 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
     router.push(newPath);
   };
 
+  // ✅ NEW: Handle Phone Input to only allow numbers and max 10 digits
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove any non-numeric characters
+    const numericValue = e.target.value.replace(/\D/g, '');
+    // Limit to 10 digits
+    if (numericValue.length <= 10) {
+      setPhone(numericValue);
+      if (message.text) setMessage({ text: '', type: '' }); // Clear error on typing
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage({ text: '', type: '' }); // Clear previous messages
     
+    // ✅ UPDATED VALIDATION
+    
+    // 1. Validate Phone Number (Must be exactly 10 digits)
+    if (phone.length !== 10) {
+      return setMessage({ 
+        text: isAmharic ? 'የስልክ ቁጥር በትክክል 10 አሃዞች መሆን አለበት።' : 'Phone number must be exactly 10 digits.', 
+        type: 'error' 
+      });
+    }
+
+    // 2. Validate Password Length
+    if (password.length < 6) {
+      return setMessage({ 
+        text: isAmharic ? 'የይለፍ ቃል ቢያንስ 6 ፊደሎች/ቁጥሮች መሆን አለበት።' : 'Password must be at least 6 characters.', 
+        type: 'error' 
+      });
+    }
+
+    // 3. Validate Password Match (if signing up)
     if (isSignup && password !== confirmPassword) {
-      alert(isAmharic ? 'የይለፍ ቃሎቹ አይመሳሰሉም!' : 'Passwords do not match!');
-      return;
+      return setMessage({ 
+        text: isAmharic ? 'የይለፍ ቃሎቹ አይመሳሰሉም!' : 'Passwords do not match!', 
+        type: 'error' 
+      });
     }
 
     setLoading(true);
@@ -81,11 +117,13 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
         localStorage.setItem('user', JSON.stringify(data.user));
         window.location.href = `/${locale}/home`;
       } else {
-        alert(isAmharic ? 'በተሳካ ሁኔታ ተመዝግበዋል! አሁን ይግቡ' : 'Registered successfully! Please login.');
+        setMessage({ text: isAmharic ? 'በተሳካ ሁኔታ ተመዝግበዋል! አሁን ይግቡ' : 'Registered successfully! Please login.', type: 'success' });
         setIsSignup(false);
+        setPassword('');
+        setConfirmPassword('');
       }
     } catch (err: any) {
-      alert(err.message);
+      setMessage({ text: err.message, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -101,14 +139,12 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
         {isAmharic ? 'English' : 'አማርኛ'}
       </button>
 
-      {/* ✅ Updated ambient glows to match the rich blue */}
       <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <div className="max-w-md w-full relative z-10">
         
         <div className="flex flex-col items-center justify-center mb-8">
-        
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight text-center">
             {isSignup ? (isAmharic ? 'መመዝገቢያ' : 'Create Account') : (isAmharic ? 'እንኳን ደህና መጡ' : 'Welcome Back')}
           </h1>
@@ -121,6 +157,27 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
 
         <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2rem] shadow-xl border border-gray-100">
           
+          {/* Custom Message Display */}
+          {message.text && (
+            <div className={`mb-6 p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+              message.type === 'error' 
+                ? 'bg-red-50 border border-red-200 text-red-700' 
+                : 'bg-green-50 border border-green-200 text-green-700'
+            }`}>
+              {message.type === 'error' ? (
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              ) : (
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              )}
+              <div className="flex-1 text-sm font-medium">
+                {message.text}
+              </div>
+              <button type="button" onClick={() => setMessage({ text: '', type: '' })} className="opacity-50 hover:opacity-100 transition-opacity">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             
             {/* Phone Number */}
@@ -134,9 +191,11 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                 </div>
                 <div className="relative">
                   <input 
-                    type="tel" 
+                    type="text" // Changed from 'tel' to 'text' to ensure numeric handling works smoothly
+                    inputMode="numeric" // Forces numeric keyboard on mobile
                     value={phone} 
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={handlePhoneChange} // ✅ Updated handler
+                    maxLength={10} // ✅ Native limit
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1E4E79] focus:bg-white transition-all"
                     required 
                   />
@@ -162,7 +221,10 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                   <input 
                     type="password" 
                     value={password} 
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (message.text) setMessage({ text: '', type: '' }); // Clear error on typing
+                    }}
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1E4E79] focus:bg-white transition-all"
                     required 
                   />
@@ -190,7 +252,10 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
                       <input 
                         type="password" 
                         value={confirmPassword} 
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          if (message.text) setMessage({ text: '', type: '' }); // Clear error on typing
+                        }}
                         className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#1E4E79] focus:bg-white transition-all"
                         required 
                       />
@@ -223,7 +288,6 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
               </>
             )}
 
-            {/* ✅ Updated to use the exact gradient from your image */}
             <button 
               type="submit" 
               disabled={loading}
@@ -241,7 +305,10 @@ function AuthContent({ params }: { params: Promise<{ locale: string }> }) {
           </form>
 
           <button 
-            onClick={() => setIsSignup(!isSignup)}
+            onClick={() => {
+              setIsSignup(!isSignup);
+              setMessage({ text: '', type: '' }); // Clear messages when switching forms
+            }}
             className="w-full mt-6 text-sm text-gray-500 hover:text-[#1E4E79] transition-colors text-center block font-medium"
           >
             {isSignup 

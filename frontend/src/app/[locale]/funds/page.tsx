@@ -22,6 +22,9 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
   const [investAmount, setInvestAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // ✅ NEW: Custom Message State
+  const [message, setMessage] = useState({ text: '', type: '' });
+
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
@@ -60,18 +63,37 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
     return isAmharic ? `${diffMins} ደቂቃዎች ቀርተዋል` : `${diffMins} Mins left`;
   };
 
+  // ✅ Strict Input Handler (Only numbers)
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numericValue = e.target.value.replace(/\D/g, '');
+    setInvestAmount(numericValue);
+    if (message.text) setMessage({ text: '', type: '' }); 
+  };
+
   const handleInvest = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage({ text: '', type: '' }); // Clear previous messages
+
+    const amountNum = parseFloat(investAmount);
+    const minAmount = parseFloat(selectedPlan.minAmount);
+    const maxAmount = parseFloat(selectedPlan.maxAmount);
+    const walletBalance = parseFloat(userData?.user?.walletBalance || '0');
+
+    // ✅ CLIENT-SIDE VALIDATION
+    if (!investAmount || isNaN(amountNum)) {
+      return setMessage({ text: isAmharic ? 'እባክዎ ትክክለኛ መጠን ያስገቡ።' : 'Please enter a valid amount.', type: 'error' });
+    }
+    if (amountNum < minAmount) {
+      return setMessage({ text: isAmharic ? `ዝቅተኛው ኢንቨስትመንት ETB ${selectedPlan.minAmount} ነው` : `Minimum investment is ETB ${selectedPlan.minAmount}`, type: 'error' });
+    }
+    if (amountNum > maxAmount) {
+      return setMessage({ text: isAmharic ? `ከፍተኛው ኢንቨስትመንት ETB ${selectedPlan.maxAmount} ነው` : `Maximum investment is ETB ${selectedPlan.maxAmount}`, type: 'error' });
+    }
+    if (amountNum > walletBalance) {
+      return setMessage({ text: isAmharic ? 'በኪስ ቦርሳዎ ውስጥ በቂ ገንዘብ የለም።' : 'Insufficient wallet balance.', type: 'error' });
+    }
+
     setSubmitting(true);
-    
-    if (parseFloat(investAmount) < parseFloat(selectedPlan.minAmount)) {
-      alert(isAmharic ? `ዝቅተኛው ኢንቨስትመንት ETB ${selectedPlan.minAmount} ነው` : `Minimum investment is ETB ${selectedPlan.minAmount}`);
-      setSubmitting(false); return;
-    }
-    if (parseFloat(investAmount) > parseFloat(selectedPlan.maxAmount)) {
-      alert(isAmharic ? `ከፍተኛው ኢንቨስትመንት ETB ${selectedPlan.maxAmount} ነው` : `Maximum investment is ETB ${selectedPlan.maxAmount}`);
-      setSubmitting(false); return;
-    }
 
     try {
       const res = await fetch(`${apiUrl}/api/user/${user.id}/join-fund`, {
@@ -81,12 +103,21 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      alert(isAmharic ? 'ኢንቨስትመንት ተሳክቷል! ፈንዶች ተቆልፈዋል።' : 'Investment successful! Funds locked.');
-      setSelectedPlan(null);
+      setMessage({ text: isAmharic ? 'ኢንቨስትመንት ተሳክቷል! ፈንዶች ተቆልፈዋል።' : 'Investment successful! Funds locked.', type: 'success' });
+      
       setInvestAmount('');
       fetchData();
-      setActiveTab('my_funds'); // Switch to My Funds tab after investing
-    } catch (err: any) { alert(err.message); } 
+      
+      // Delay switching tabs slightly so the user can read the success message
+      setTimeout(() => {
+        setSelectedPlan(null);
+        setMessage({ text: '', type: '' });
+        setActiveTab('my_funds');
+      }, 2000);
+
+    } catch (err: any) { 
+      setMessage({ text: err.message, type: 'error' }); 
+    } 
     finally { setSubmitting(false); }
   };
 
@@ -114,7 +145,6 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* ✅ Decorative Background Blur - Updated to Deep Blue */}
       <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
       <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
@@ -129,7 +159,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </div>
       </div>
 
-      {/* ✅ Tabs - Updated active state to Deep Blue */}
+      {/* Tabs */}
       <div className="bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-gray-100 inline-flex w-full md:w-auto relative z-10">
         <button onClick={() => setActiveTab('available')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'available' ? 'bg-[#1E4E79] text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>
           {isAmharic ? 'ያሉ እቅዶች' : 'Available Plans'}
@@ -142,7 +172,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </button>
       </div>
 
-      {/* ✅ TAB CONTENT: Available Plans */}
+      {/* TAB CONTENT: Available Plans */}
       {activeTab === 'available' && (
         <div className="space-y-4 relative z-10 animate-in fade-in duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -167,7 +197,6 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                         <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#1E4E79] transition-colors">{plan.name}</h3>
                         <p className="text-sm text-gray-500">{plan.description}</p>
                       </div>
-                      {/* ✅ Updated badge to deep blue */}
                       <div className="bg-blue-50 text-[#1E4E79] px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                         {plan.interestRate}% {isAmharic ? '/ ቀን' : '/ day'}
                       </div>
@@ -207,7 +236,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                   </div>
 
                   <button 
-                    onClick={() => setSelectedPlan(plan)}
+                    onClick={() => { setSelectedPlan(plan); setMessage({ text: '', type: '' }); }}
                     disabled={isFull || isClosed}
                     className={`w-full py-3 rounded-xl font-bold transition-all ${
                       (isFull || isClosed) 
@@ -233,11 +262,9 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </div>
       )}
 
-      {/* ✅ TAB CONTENT: My Funds with Analytics */}
+      {/* TAB CONTENT: My Funds with Analytics */}
       {activeTab === 'my_funds' && (
         <div className="space-y-6 relative z-10 animate-in fade-in duration-300">
-          
-          {/* Fund Analytics Row - ✅ Updated to Deep Blue theme */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="bg-white/80 backdrop-blur-md p-4 rounded-3xl shadow-sm border border-gray-100 col-span-2 md:col-span-1">
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">{isAmharic ? 'የፈንድ ቀሪ ሂሳብ' : 'Fund Balance'}</p>
@@ -253,7 +280,6 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
             </div>
           </div>
 
-          {/* Active Funds List */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {activeMyFunds.length === 0 && <p className="text-gray-500 bg-white/50 p-6 rounded-2xl border border-dashed border-gray-200 text-center col-span-2">{isAmharic ? 'ምንም ንቁ ኢንቨስትመንት የለዎትም።' : 'You have no active investments.'}</p>}
             
@@ -275,12 +301,10 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
                       <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የተከፈለ' : 'Invested'}</p>
                       <p className="font-black text-gray-900">ETB {fund.amountInvested}</p>
                     </div>
-                    {/* ✅ Updated Daily Interest box to Deep Blue */}
                     <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
                       <p className="text-[#1E4E79] text-[10px] font-bold uppercase tracking-wider mb-1">{isAmharic ? 'የቀን ወለድ' : 'Daily Interest'}</p>
                       <p className="font-black text-[#1E4E79]">ETB {fund.dailyInterestBirr || '0.00'}</p>
                     </div>
-                    {/* ✅ Updated Total Return box to Deep Blue */}
                     <div className="col-span-2 bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 flex justify-between items-center">
                       <p className="text-[#1E4E79] text-xs font-bold uppercase tracking-wider">{isAmharic ? 'ጠቅላላ የሚጠበቅ ተመላሽ' : 'Total Return'}</p>
                       <p className="font-black text-[#1E4E79] text-xl">ETB {fund.totalReturn}</p>
@@ -293,7 +317,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </div>
       )}
 
-      {/* ✅ TAB CONTENT: History - Kept emerald for "completed" success but updated border/accents where applicable */}
+      {/* TAB CONTENT: History */}
       {activeTab === 'history' && (
         <div className="space-y-4 relative z-10 animate-in fade-in duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -330,7 +354,7 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
         </div>
       )}
 
-      {/* Invest Modal - ✅ Updated to Deep Blue */}
+      {/* Invest Modal */}
       {selectedPlan && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -338,16 +362,37 @@ export default function UserFunds({ params }: { params: Promise<{ locale: string
               <h2 className="text-xl font-bold text-gray-900">
                 {isAmharic ? `በ ${selectedPlan.name} ላይ ኢንቨስት ያድርጉ` : `Invest in ${selectedPlan.name}`}
               </h2>
-              <button onClick={() => setSelectedPlan(null)} className="text-gray-400 hover:text-gray-900 font-bold text-xl bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm">&times;</button>
+              <button onClick={() => { setSelectedPlan(null); setMessage({ text: '', type: '' }); }} className="text-gray-400 hover:text-gray-900 font-bold text-xl bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm">&times;</button>
             </div>
+            
             <form onSubmit={handleInvest} className="p-6 space-y-4">
+              
+              {/* ✅ Custom Message Display inside Modal */}
+              {message.text && (
+                <div className={`p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+                  message.type === 'error' 
+                    ? 'bg-red-50 border border-red-200 text-red-700' 
+                    : 'bg-green-50 border border-green-200 text-green-700'
+                }`}>
+                  {message.type === 'error' ? (
+                    <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  ) : (
+                    <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  )}
+                  <div className="flex-1 text-sm font-medium">
+                    {message.text}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-2">{isAmharic ? 'የሚያስቀምጡት መጠን (ETB)' : 'Amount to Invest (ETB)'}</label>
                 <input 
-                  type="number" 
+                  type="text" 
+                  inputMode="numeric"
                   placeholder={isAmharic ? `ገደቦች: ${selectedPlan.minAmount} - ${selectedPlan.maxAmount}` : `Limits: ${selectedPlan.minAmount} - ${selectedPlan.maxAmount}`} 
                   value={investAmount} 
-                  onChange={e => setInvestAmount(e.target.value)} 
+                  onChange={handleAmountChange} 
                   className="w-full p-4 bg-white border border-gray-300 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E4E79] transition-all" 
                   required 
                 />

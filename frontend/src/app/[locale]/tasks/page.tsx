@@ -21,6 +21,9 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
   const [submitting, setSubmitting] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
+  // ✅ NEW: Custom Message State
+  const [message, setMessage] = useState({ text: '', type: '' });
+
   // ✅ YouTube Player States
   const [playerReady, setPlayerReady] = useState(false);
   const [watchTime, setWatchTime] = useState(0);
@@ -141,8 +144,13 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
 
   const handleSubmitTask = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage({ text: '', type: '' });
+
     if (!videoWatched) {
-      return alert(isAmharic ? 'እባክዎ ቪዲዮውን ለ 30 ሰከንድ ይመልከቱ።' : 'Please watch the video for at least 30 seconds.');
+      return setMessage({ 
+        text: isAmharic ? 'እባክዎ ቪዲዮውን ለ 30 ሰከንድ ይመልከቱ።' : 'Please watch the video for at least 30 seconds.', 
+        type: 'error' 
+      });
     }
 
     setSubmitting(true);
@@ -154,12 +162,19 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      alert(data.message);
-      setActiveTask(null);
-      setShowVideo(false);
-      setRating(5); setSubscribed(false); setLiked(false);
-      fetchData();
-    } catch (err: any) { alert(err.message); }
+      setMessage({ text: data.message, type: 'success' });
+      
+      // Delay closing the modal slightly so they can see the success message
+      setTimeout(() => {
+        setActiveTask(null);
+        setShowVideo(false);
+        setRating(5); setSubscribed(false); setLiked(false);
+        fetchData();
+      }, 2000);
+
+    } catch (err: any) { 
+      setMessage({ text: err.message, type: 'error' }); 
+    }
     finally { setSubmitting(false); }
   };
 
@@ -180,7 +195,6 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24 relative overflow-hidden">
       
-      {/* ✅ Decorative Background Blurs */}
       <div className="absolute top-0 right-[-20%] w-64 h-64 bg-[#1E4E79]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
       <div className="absolute bottom-0 left-[-20%] w-64 h-64 bg-[#15608D]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
@@ -194,7 +208,6 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
           </p>
         </div>
 
-        {/* ✅ Updated to Deep Blue Gradient */}
         <div className="bg-gradient-to-br from-[#1E4E79] to-[#15608D] text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden group w-full md:w-auto">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
           <div className="relative z-10">
@@ -223,7 +236,6 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Job</h3>
           <p className="text-gray-500 mb-6">{isAmharic ? 'እባክዎ መጀመሪያ ስራ ይግዙ።' : 'You have not registered for any job yet.'}</p>
-          {/* ✅ Updated to deep blue */}
           <a href={`/${locale}/jobs`} className="inline-block bg-[#1E4E79] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#15608D] transition-colors shadow-md">
             {isAmharic ? 'ስራዎችን ይመልከቱ' : 'Browse Jobs'}
           </a>
@@ -238,10 +250,31 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
         </div>
       ) : (
         <div className="relative z-10 space-y-8">
+          
+          {/* ✅ NEW: Global message display for the main page (e.g. if they try to click a task when closed) */}
+          {message.text && !activeTask && (
+            <div className={`p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+              message.type === 'error' 
+                ? 'bg-red-50 border border-red-200 text-red-700' 
+                : 'bg-green-50 border border-green-200 text-green-700'
+            }`}>
+              {message.type === 'error' ? (
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              ) : (
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              )}
+              <div className="flex-1 text-sm font-medium">
+                {message.text}
+              </div>
+              <button type="button" onClick={() => setMessage({ text: '', type: '' })} className="opacity-50 hover:opacity-100 transition-opacity">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          )}
+
           {myJobs.map((myJob: any) => (
             <div key={myJob.id} className="space-y-4">
               <div className="flex items-center gap-3">
-                {/* ✅ Updated to deep blue */}
                 <div className="h-8 w-1 bg-[#1E4E79] rounded-full"></div>
                 <h2 className="text-2xl font-bold text-gray-900">{myJob.jobName} Tasks</h2>
               </div>
@@ -276,7 +309,13 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                       
                       <button 
                         onClick={() => { 
-                          if (timeState !== 'OPEN') return alert(isAmharic ? 'ተግባሮች ተዘግተዋል።' : 'Tasks are closed. Please check back between 8:00 AM and 4:00 PM.');
+                          setMessage({ text: '', type: '' }); // Clear global message
+                          if (timeState !== 'OPEN') {
+                            return setMessage({ 
+                              text: isAmharic ? 'ተግባሮች ተዘግተዋል። ከጠዋቱ 2:00 እስከ ምሽቱ 10:00 ሰዓት ብቻ ነው።' : 'Tasks are closed. Please check back between 8:00 AM and 4:00 PM.', 
+                              type: 'error' 
+                            });
+                          }
                           setActiveTask({...task, jobId: myJob.jobId}); 
                           
                           if (task.requiresSubscription) {
@@ -313,11 +352,30 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur-md z-10">
               <h2 className="text-lg font-bold text-gray-900 pr-8 line-clamp-1">{activeTask.title}</h2>
-              <button onClick={() => setActiveTask(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors text-2xl font-bold">&times;</button>
+              <button onClick={() => { setActiveTask(null); setMessage({ text: '', type: '' }); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors text-2xl font-bold">&times;</button>
             </div>
 
             {!showVideo ? (
               <div className="p-8 text-center space-y-6">
+                
+                {/* ✅ NEW: Message Display inside Subscribe view */}
+                {message.text && (
+                  <div className={`p-4 rounded-2xl text-left flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+                    message.type === 'error' 
+                      ? 'bg-red-50 border border-red-200 text-red-700' 
+                      : 'bg-green-50 border border-green-200 text-green-700'
+                  }`}>
+                    {message.type === 'error' ? (
+                      <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ) : (
+                      <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    )}
+                    <div className="flex-1 text-sm font-medium">
+                      {message.text}
+                    </div>
+                  </div>
+                )}
+
                 <div className="w-24 h-24 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-red-100">
                   <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
                 </div>
@@ -342,7 +400,10 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
                   onClick={(e) => {
                     if (!systemSettings?.youtubeChannelUrl) {
                       e.preventDefault();
-                      alert('The YouTube subscribe link has not been set by the admin yet.');
+                      setMessage({ 
+                        text: isAmharic ? 'የYouTube ሊንኩ በአስተዳዳሪው ገና አልተዘጋጀም።' : 'The YouTube subscribe link has not been set by the admin yet.', 
+                        type: 'error' 
+                      });
                       return;
                     }
                     setShowVideo(true);
@@ -354,10 +415,28 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
             ) : (
               <>
                 <div className="aspect-video bg-black relative">
-                  {/* ✅ The API replaces this div with the iframe player */}
                   <div id="youtube-player" className="absolute inset-0 w-full h-full"></div>
                 </div>
                 <form onSubmit={handleSubmitTask} className="p-6 md:p-8 space-y-6">
+                  
+                  {/* ✅ NEW: Message Display inside Video view */}
+                  {message.text && (
+                    <div className={`p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 ${
+                      message.type === 'error' 
+                        ? 'bg-red-50 border border-red-200 text-red-700' 
+                        : 'bg-green-50 border border-green-200 text-green-700'
+                    }`}>
+                      {message.type === 'error' ? (
+                        <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      ) : (
+                        <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      )}
+                      <div className="flex-1 text-sm font-medium">
+                        {message.text}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-4">
                     <p className="text-sm font-bold text-gray-900 border-b border-gray-200 pb-3">
                       {isAmharic ? 'እነዚህን መስፈርቶች ያሟሉ:' : 'Complete these requirements:'}
