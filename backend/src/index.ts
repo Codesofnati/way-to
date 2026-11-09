@@ -1541,13 +1541,13 @@ app.post('/api/user/:id/submit-task', async (c) => {
   const db = getDb(c.env.DATABASE_URL);
 
   try {
-    const now = new Date();
+       const now = new Date();
     
-    // Get current hour (using local time or UTC depending on your server)
-    const currentHour = now.getHours(); 
+    // ✅ FIX: Convert UTC time to Ethiopian Time (UTC+3)
+    const ethiopianHour = (now.getUTCHours() + 3) % 24;
 
     // OPEN: 8:00 AM to 3:59 PM (16 is 4:00 PM)
-    if (currentHour < 8 || currentHour >= 16) {
+    if (ethiopianHour < 8 || ethiopianHour >= 16) {
       return c.json({
         success: false,
         error: 'Tasks can only be completed between 8:00 AM and 4:00 PM.'
