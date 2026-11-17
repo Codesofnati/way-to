@@ -246,7 +246,7 @@ export default function UserTasks({ params }: { params: Promise<{ locale: string
             <svg className="w-8 h-8 text-[#1E4E79]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">{isAmharic ? 'ዛሬ አዲስ ቪዲዮ የለም' : 'No new videos today'}</h3>
-          <p className="text-gray-500">{isAmharic ? 'አስተዳዳሪው ለዛሬ አዲስ ቪዲዮ አላስገባም።' : 'The Super Admin has not uploaded videos for today yet. Check back later.'}</p>
+          <p className="text-gray-500">{isAmharic ? 'ለዛሬ አዲስ ቪዲዮ አልገባም።' : 'No new videos are available today. Check back later.'}</p>
         </div>
       ) : (
         <div className="relative z-10 space-y-8">
