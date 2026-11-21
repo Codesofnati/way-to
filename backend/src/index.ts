@@ -2497,15 +2497,25 @@ app.get('/api/stories', async (c) => {
   }
 });
 
+// ✅ Normalization helper — put this near the top of the file, right after `getDb`
+function normalizePhone(raw: string | null | undefined): string {
+  let p = (raw || '').toString().trim().replace(/[^\d+]/g, '');
+  if (!p) return '';
+  // Ethiopian local 09XXXXXXXX → +2519XXXXXXXX
+  if (p.startsWith('0') && p.length === 10) p = '+251' + p.slice(1);
+  // 251XXXXXXXXX → +251XXXXXXXXX
+  if (!p.startsWith('+') && p.startsWith('251')) p = '+' + p;
+  return p;
+}
 // Admin: Create Global Notification
 app.post('/api/super-admin/notifications', async (c) => {
   try {
-    // ✅ NEW: accept targetPhone
+    // ✅ targetPhone IS now destructured
     const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl, targetPhone } = await c.req.json();
     const db = getDb(c.env.DATABASE_URL);
 
-    // ✅ Normalize the phone: strip spaces/dashes, keep leading +
-    const cleanedPhone = (targetPhone || '').toString().trim().replace(/[^\d+]/g, '');
+    // ✅ Normalize before saving
+    const cleanPhone = normalizePhone(targetPhone);
 
     const newNotif = await db.insert(globalNotifications).values({ 
       titleAm: titleAm || null,
@@ -2514,7 +2524,7 @@ app.post('/api/super-admin/notifications', async (c) => {
       contentEn: contentEn || null,
       expiresAt: new Date(expiresAt),
       imageUrl: imageUrl || null,
-      targetPhone: cleanedPhone || null,   // ✅ NEW: null = broadcast
+      targetPhone: cleanPhone || null,   // ✅ SAVED NOW — null = broadcast
     }).returning();
     
     return c.json({ success: true, notification: newNotif[0] }, 201);
@@ -2531,15 +2541,13 @@ app.get('/api/active-notification', async (c) => {
     const db = getDb(c.env.DATABASE_URL);
     const now = new Date();
 
-    // ✅ Read the phone the frontend sends (?phone=...)
-    const rawPhone = c.req.query('phone') || '';
-    const phone = rawPhone.toString().trim().replace(/[^\d+]/g, '');
+    // ✅ Read and normalize the phone the user sends
+    const phone = normalizePhone(c.req.query('phone'));
 
     const active = await db.select().from(globalNotifications)
       .where(
         and(
           gte(globalNotifications.expiresAt, now),
-          // ✅ Broadcast (NULL or empty) OR targeted at this user's phone
           or(
             isNull(globalNotifications.targetPhone),
             eq(globalNotifications.targetPhone, ''),

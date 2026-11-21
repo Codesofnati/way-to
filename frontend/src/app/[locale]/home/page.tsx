@@ -30,32 +30,47 @@ export default function UserHome({ params }: { params: Promise<{ locale: string 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
   useEffect(() => {
-    Promise.all([
-      fetch(`${apiUrl}/api/stories`).then(r => r.json()),
-      fetch(`${apiUrl}/api/active-notification`).then(r => r.json()),
-      fetch(`${apiUrl}/api/app-settings`).then(r => r.json()),
-      fetch(`${apiUrl}/api/top-banner`).then(r => r.json()) // ✅ Fetch Top Banner
-    ]).then(([storiesRes, notifRes, settingsRes, bannerRes]) => {
-      if (storiesRes.success) setStories(storiesRes.stories);
-      
-      if (settingsRes.success) {
-        setAppSettings({
-          profitImages: settingsRes.settings.profitImages || [],
-          vipImages: settingsRes.settings.vipImages || []
-        });
-      }
+  // ✅ Read logged-in user's phone from localStorage
+  const getPhone = (): string => {
+    try {
+      const raw = localStorage.getItem('user');
+      if (!raw) return '';
+      const u = JSON.parse(raw);
+      return (u?.phone || '').toString().trim();
+    } catch { return ''; }
+  };
 
-      // ✅ Set Top Banner if it exists
-      if (bannerRes.success && bannerRes.banner) {
-        setTopBanner(bannerRes.banner);
-      }
+  const userPhone = getPhone();
+  const notifUrl = userPhone
+    ? `${apiUrl}/api/active-notification?phone=${encodeURIComponent(userPhone)}`
+    : `${apiUrl}/api/active-notification`;
 
-      if (notifRes.success && notifRes.notifications && notifRes.notifications.length > 0) {
-        setActiveNotifs(notifRes.notifications);
-        setShowNotif(true); 
-      }
-    }).finally(() => setLoading(false));
-  }, [apiUrl]);
+  Promise.all([
+    fetch(`${apiUrl}/api/stories`).then(r => r.json()),
+    fetch(notifUrl).then(r => r.json()),
+    fetch(`${apiUrl}/api/app-settings`).then(r => r.json()),
+    fetch(`${apiUrl}/api/top-banner`).then(r => r.json())
+  ]).then(([storiesRes, notifRes, settingsRes, bannerRes]) => {
+    if (storiesRes.success) setStories(storiesRes.stories);
+
+    if (settingsRes.success) {
+      setAppSettings({
+        profitImages: settingsRes.settings.profitImages || [],
+        vipImages: settingsRes.settings.vipImages || []
+      });
+    }
+
+    if (bannerRes.success && bannerRes.banner) {
+      setTopBanner(bannerRes.banner);
+    }
+
+    if (notifRes.success && notifRes.notifications?.length > 0) {
+      setActiveNotifs(notifRes.notifications);
+      setCurrentNotifIndex(0);
+      setShowNotif(true);
+    }
+  }).finally(() => setLoading(false));
+}, [apiUrl]);
 
   const dismissNotif = () => {
     if (currentNotifIndex < activeNotifs.length - 1) {
