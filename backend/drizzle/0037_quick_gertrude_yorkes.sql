@@ -1,0 +1,1 @@
+ALTER TABLE "global_notifications" ADD COLUMN "target_phone" text;

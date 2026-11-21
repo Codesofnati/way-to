@@ -15,15 +15,22 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
   const [newStory, setNewStory] = useState({ titleAm: '', titleEn: '', contentAm: '', contentEn: '' });
   const [storyFile, setStoryFile] = useState<File | null>(null);
   const [submittingStory, setSubmittingStory] = useState(false);
-  
-  // Notification Form State
-  const [newNotif, setNewNotif] = useState({ titleAm: '', titleEn: '', contentAm: '', contentEn: '', expiresAt: '' });
+
+  // Notification Form State (NEW: targetPhone + durationDays)
+  const [newNotif, setNewNotif] = useState({
+    titleAm: '',
+    titleEn: '',
+    contentAm: '',
+    contentEn: '',
+    targetPhone: '',   // '' = broadcast to everyone
+    durationDays: 7,   // shown for N days
+  });
   const [notifFile, setNotifFile] = useState<File | null>(null);
   const [submittingNotif, setSubmittingNotif] = useState(false);
 
   // MODAL STATES
-  const [viewingStory, setViewingStory] = useState<any>(null); 
-  const [editingStory, setEditingStory] = useState<any>(null); 
+  const [viewingStory, setViewingStory] = useState<any>(null);
+  const [editingStory, setEditingStory] = useState<any>(null);
   const [editForm, setEditForm] = useState({ titleAm: '', titleEn: '', contentAm: '', contentEn: '', imageUrl: '' });
   const [editFile, setEditFile] = useState<File | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -55,25 +62,18 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
     return urlData.publicUrl;
   };
 
-  // --- CREATE STORY ---
+  // --- CREATE STORY (unchanged) ---
   const handleCreateStory = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Ensure at least an image is uploaded
-    if (!storyFile) {
-      return alert("Please upload a story image.");
-    }
-
+    if (!storyFile) return alert("Please upload a story image.");
     setSubmittingStory(true);
     try {
       const imageUrl = await uploadImage(storyFile);
-
       const res = await fetch(`${apiUrl}/api/super-admin/stories`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newStory, imageUrl })
       });
       if (!res.ok) throw new Error('Failed to create story');
-      
       alert('Story posted!');
       setNewStory({ titleAm: '', titleEn: '', contentAm: '', contentEn: '' });
       setStoryFile(null);
@@ -82,29 +82,63 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
     finally { setSubmittingStory(false); }
   };
 
-  // --- CREATE NOTIFICATION ---
+  // --- CREATE NOTIFICATION (UPDATED) ---
   const handleCreateNotif = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate phone if provided
+    const phone = newNotif.targetPhone.trim();
+    if (phone && !/^\+?[0-9]{7,15}$/.test(phone)) {
+      return alert('Please enter a valid phone number (digits only, optionally starting with +).');
+    }
+    if (!newNotif.durationDays || newNotif.durationDays < 1) {
+      return alert('Duration must be at least 1 day.');
+    }
+
     setSubmittingNotif(true);
     try {
       let imageUrl = '';
       if (notifFile) imageUrl = await uploadImage(notifFile);
 
+      // Auto-compute expiry from durationDays
+      const expiresAt = new Date(
+        Date.now() + newNotif.durationDays * 24 * 60 * 60 * 1000
+      ).toISOString();
+
+      const payload = {
+        titleAm: newNotif.titleAm,
+        titleEn: newNotif.titleEn,
+        contentAm: newNotif.contentAm,
+        contentEn: newNotif.contentEn,
+        imageUrl,
+        targetPhone: phone || null,     // null = broadcast
+        durationDays: newNotif.durationDays,
+        expiresAt,
+      };
+
       const res = await fetch(`${apiUrl}/api/super-admin/notifications`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newNotif, imageUrl })
+        body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('Failed to create notification');
-      
-      alert('Notification sent!');
-      setNewNotif({ titleAm: '', titleEn: '', contentAm: '', contentEn: '', expiresAt: '' });
+
+      alert(
+        phone
+          ? `Popup sent to ${phone} for ${newNotif.durationDays} day(s).`
+          : `Broadcast popup sent to all users for ${newNotif.durationDays} day(s).`
+      );
+
+      setNewNotif({
+        titleAm: '', titleEn: '', contentAm: '', contentEn: '',
+        targetPhone: '', durationDays: 7,
+      });
       setNotifFile(null);
-      fetchData(); 
+      fetchData();
     } catch (err: any) { alert(err.message); }
     finally { setSubmittingNotif(false); }
   };
 
-  // --- DELETE STORY ---
+  // --- DELETE STORY / NOTIFICATION (unchanged) ---
   const handleDeleteStory = async (id: string) => {
     if (!confirm('Are you sure you want to delete this story?')) return;
     try {
@@ -113,7 +147,6 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
     } catch (err: any) { alert(err.message); }
   };
 
-  // --- DELETE NOTIFICATION ---
   const handleDeleteNotif = async (id: string) => {
     if (!confirm('Are you sure you want to delete this popup notification?')) return;
     try {
@@ -122,7 +155,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
     } catch (err: any) { alert(err.message); }
   };
 
-  // --- EDIT STORY ---
+  // --- EDIT STORY (unchanged) ---
   const openEditModal = (story: any) => {
     setEditingStory(story);
     setEditForm({
@@ -141,13 +174,11 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
     try {
       let finalImageUrl = editForm.imageUrl;
       if (editFile) finalImageUrl = await uploadImage(editFile);
-
       const res = await fetch(`${apiUrl}/api/super-admin/stories/${editingStory.id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...editForm, imageUrl: finalImageUrl })
       });
       if (!res.ok) throw new Error('Failed to update story');
-      
       alert('Story updated!');
       setEditingStory(null);
       fetchData();
@@ -159,10 +190,10 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
-      
+
       {/* FORM SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         {/* CREATE STORY */}
         <div className="bg-[#131825] p-6 rounded-3xl border border-gray-800 shadow-lg">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
@@ -171,16 +202,13 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
           </h2>
           <form onSubmit={handleCreateStory} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* ✅ Removed required attribute */}
               <input type="text" placeholder="Title (Am) - Optional" value={newStory.titleAm} onChange={e => setNewStory({...newStory, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" />
               <input type="text" placeholder="Title (En) - Optional" value={newStory.titleEn} onChange={e => setNewStory({...newStory, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]" />
             </div>
-            {/* ✅ Removed required attribute */}
             <textarea placeholder="Content (Am) - Optional" value={newStory.contentAm} onChange={e => setNewStory({...newStory, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24 outline-none focus:border-[#B519FF]" />
             <textarea placeholder="Content (En) - Optional" value={newStory.contentEn} onChange={e => setNewStory({...newStory, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24 outline-none focus:border-[#B519FF]" />
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Story Image (Required)</label>
-              {/* ✅ Made file input required */}
               <input type="file" accept="image/*" required onChange={e => setStoryFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF]" />
             </div>
             <button type="submit" disabled={submittingStory} className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
@@ -189,7 +217,7 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
           </form>
         </div>
 
-        {/* CREATE NOTIFICATION */}
+        {/* CREATE NOTIFICATION (UPDATED) */}
         <div className="bg-[#131825] p-6 rounded-3xl border border-[#B519FF]/30 shadow-[0_0_30px_rgba(181,25,255,0.05)]">
           <h2 className="text-xl font-bold text-[#B519FF] mb-6 flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
@@ -202,16 +230,56 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
             </div>
             <textarea placeholder="Content (Am)" value={newNotif.contentAm} onChange={e => setNewNotif({...newNotif, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-20 outline-none focus:border-[#B519FF]" />
             <textarea placeholder="Content (En)" value={newNotif.contentEn} onChange={e => setNewNotif({...newNotif, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-20 outline-none focus:border-[#B519FF]" />
+
+            {/* NEW: Target phone (optional) */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
+                Target Phone (Optional — leave empty to send to ALL users)
+              </label>
+              <input
+                type="tel"
+                inputMode="tel"
+                placeholder="e.g. +251912345678"
+                value={newNotif.targetPhone}
+                onChange={e => setNewNotif({...newNotif, targetPhone: e.target.value})}
+                className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]"
+              />
+              <p className="text-[10px] text-gray-500 mt-1">
+                Digits only, can start with <code>+</code>. Empty = broadcast.
+              </p>
+            </div>
+
+            {/* NEW: Duration in days */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">
+                Show For (Days)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                step={1}
+                value={newNotif.durationDays}
+                onChange={e => setNewNotif({...newNotif, durationDays: parseInt(e.target.value || '0', 10)})}
+                className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF]"
+                required
+              />
+              <p className="text-[10px] text-gray-500 mt-1">
+                Expires: {new Date(Date.now() + (newNotif.durationDays || 0) * 86400000).toLocaleString()}
+              </p>
+            </div>
+
             <div>
               <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Modal Image</label>
               <input type="file" accept="image/*" onChange={e => setNotifFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#B519FF]/10 file:text-[#B519FF]" />
             </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Expiry Date</label>
-              <input type="date" value={newNotif.expiresAt} onChange={e => setNewNotif({...newNotif, expiresAt: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm outline-none focus:border-[#B519FF] color-scheme-dark" required />
-            </div>
+
             <button type="submit" disabled={submittingNotif} className="w-full bg-[#B519FF] text-white p-3 rounded-xl font-bold hover:bg-purple-600 transition disabled:opacity-50">
-              {submittingNotif ? 'Sending...' : 'Send Modal'}
+              {submittingNotif
+                ? 'Sending...'
+                : newNotif.targetPhone.trim()
+                  ? `Send to ${newNotif.targetPhone.trim()}`
+                  : 'Broadcast to ALL users'}
             </button>
           </form>
         </div>
@@ -220,7 +288,6 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
       {/* RECENT STORIES LIST */}
       <div className="bg-[#131825] p-6 rounded-3xl border border-gray-800">
         <h2 className="text-xl font-bold text-white mb-6">Recent Stories</h2>
-        
         {stories.length === 0 ? (
           <p className="text-gray-500">No stories posted yet.</p>
         ) : (
@@ -238,24 +305,9 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
                   <p className="text-xs text-gray-500 mt-2 line-clamp-2">{story.contentEn || 'No description'}</p>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button 
-                    onClick={() => setViewingStory(story)} 
-                    className="flex-1 bg-gray-800 text-gray-300 border border-gray-700 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-700 transition"
-                  >
-                    View
-                  </button>
-                  <button 
-                    onClick={() => openEditModal(story)} 
-                    className="flex-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-500/20 transition"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteStory(story.id)} 
-                    className="flex-1 bg-red-500/10 text-red-400 border border-red-500/20 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20 transition"
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => setViewingStory(story)} className="flex-1 bg-gray-800 text-gray-300 border border-gray-700 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-700 transition">View</button>
+                  <button onClick={() => openEditModal(story)} className="flex-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-500/20 transition">Edit</button>
+                  <button onClick={() => handleDeleteStory(story.id)} className="flex-1 bg-red-500/10 text-red-400 border border-red-500/20 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20 transition">Delete</button>
                 </div>
               </div>
             ))}
@@ -263,10 +315,9 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
         )}
       </div>
 
-      {/* RECENT NOTIFICATIONS */}
+      {/* RECENT NOTIFICATIONS (UPDATED to show target + days) */}
       <div className="bg-[#131825] p-6 rounded-3xl border border-gray-800">
         <h2 className="text-xl font-bold text-white mb-6">Sent Popup Notifications</h2>
-        
         {notifications.length === 0 ? (
           <p className="text-gray-500">No popup notifications sent yet.</p>
         ) : (
@@ -278,11 +329,24 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
                     <img src={notif.imageUrl} className="w-16 h-16 rounded-lg object-cover border border-gray-700" />
                   )}
                   <div>
-                    <p className="font-bold text-white text-sm">{notif.titleEn || 'No Title'}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-white text-sm">{notif.titleEn || 'No Title'}</p>
+                      {/* Target badge */}
+                      {notif.targetPhone ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/30">
+                          📱 {notif.targetPhone}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-300 border border-green-500/30">
+                          🌍 All users
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-gray-500 mt-0.5">{notif.titleAm}</p>
                     <p className="text-xs text-gray-500 line-clamp-1 mt-1">{notif.contentEn}</p>
                     <p className="text-[10px] text-orange-400 font-bold mt-1">
-                      Expires: {new Date(notif.expiresAt).toLocaleDateString()}
+                      Expires: {new Date(notif.expiresAt).toLocaleString()}
+                      {notif.durationDays ? ` · ${notif.durationDays} day(s)` : ''}
                     </p>
                   </div>
                 </div>
@@ -303,13 +367,10 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
               <h2 className="text-lg font-bold text-white">View Story</h2>
               <button onClick={() => setViewingStory(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:text-white transition text-xl font-bold">&times;</button>
             </div>
-            
-            {/* ✅ This makes the content scrollable if it's too long */}
             <div className="overflow-y-auto custom-scrollbar flex-1">
               {viewingStory.imageUrl && (
                 <img src={viewingStory.imageUrl} className="w-full h-auto object-contain bg-black/20" alt="Story" />
               )}
-              
               {(viewingStory.titleEn || viewingStory.titleAm || viewingStory.contentEn || viewingStory.contentAm) && (
                 <div className="p-6 space-y-4">
                   {(viewingStory.titleEn || viewingStory.titleAm) && (
@@ -318,7 +379,6 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
                       {viewingStory.titleAm && <h4 className="text-sm font-bold text-gray-400 mt-1">{viewingStory.titleAm}</h4>}
                     </div>
                   )}
-                  
                   {(viewingStory.contentEn || viewingStory.contentAm) && (
                     <div className="bg-[#0B0F19] p-4 rounded-xl border border-gray-800 space-y-4">
                       {viewingStory.contentEn && (
@@ -350,7 +410,6 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
               <h2 className="text-lg font-bold text-orange-400">Edit Story</h2>
               <button onClick={() => setEditingStory(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:text-white transition text-xl font-bold">&times;</button>
             </div>
-            
             <form onSubmit={handleSaveEdit} className="overflow-y-auto custom-scrollbar flex-1">
               <div className="p-6 space-y-4">
                 {editForm.imageUrl && !editFile && (
@@ -360,32 +419,25 @@ export default function AdminStories({ params }: { params: Promise<{ locale: str
                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Change Image (Optional)</label>
                   <input type="file" accept="image/*" onChange={e => setEditFile(e.target.files?.[0] || null)} className="w-full p-2 bg-[#0B0F19] border border-gray-700 rounded-xl text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-orange-500/10 file:text-orange-400" />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Title (En) - Optional</label>
-                    {/* ✅ Removed required attribute */}
                     <input type="text" value={editForm.titleEn} onChange={e => setEditForm({...editForm, titleEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Title (Am) - Optional</label>
-                    {/* ✅ Removed required attribute */}
                     <input type="text" value={editForm.titleAm} onChange={e => setEditForm({...editForm, titleAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Content (En) - Optional</label>
-                  {/* ✅ Removed required attribute */}
                   <textarea value={editForm.contentEn} onChange={e => setEditForm({...editForm, contentEn: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Content (Am) - Optional</label>
-                  {/* ✅ Removed required attribute */}
                   <textarea value={editForm.contentAm} onChange={e => setEditForm({...editForm, contentAm: e.target.value})} className="w-full p-3 bg-[#0B0F19] border border-gray-700 rounded-xl text-white text-sm h-24" />
                 </div>
               </div>
-              
               <div className="p-4 bg-[#0B0F19] border-t border-gray-800">
                 <button type="submit" disabled={savingEdit} className="w-full bg-orange-500 text-white p-3 rounded-xl font-bold hover:bg-orange-600 transition disabled:opacity-50">
                   {savingEdit ? 'Saving...' : 'Save Changes'}

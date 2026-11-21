@@ -1,4 +1,4 @@
-import { eq, inArray, and, gte, lte, sql, desc,  ne} from 'drizzle-orm';
+import { eq, inArray, and, or, isNull, gte, lte, sql, desc, ne } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core'; // ✅ Import alias from pg-core
 
 import { Hono } from 'hono';
@@ -2500,16 +2500,21 @@ app.get('/api/stories', async (c) => {
 // Admin: Create Global Notification
 app.post('/api/super-admin/notifications', async (c) => {
   try {
-    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl } = await c.req.json();
+    // ✅ NEW: accept targetPhone
+    const { titleAm, titleEn, contentAm, contentEn, expiresAt, imageUrl, targetPhone } = await c.req.json();
     const db = getDb(c.env.DATABASE_URL);
-    
+
+    // ✅ Normalize the phone: strip spaces/dashes, keep leading +
+    const cleanedPhone = (targetPhone || '').toString().trim().replace(/[^\d+]/g, '');
+
     const newNotif = await db.insert(globalNotifications).values({ 
       titleAm: titleAm || null,
       titleEn: titleEn || null,
       contentAm: contentAm || null,
       contentEn: contentEn || null,
       expiresAt: new Date(expiresAt),
-      imageUrl: imageUrl || null
+      imageUrl: imageUrl || null,
+      targetPhone: cleanedPhone || null,   // ✅ NEW: null = broadcast
     }).returning();
     
     return c.json({ success: true, notification: newNotif[0] }, 201);
@@ -2525,10 +2530,23 @@ app.get('/api/active-notification', async (c) => {
   try {
     const db = getDb(c.env.DATABASE_URL);
     const now = new Date();
-    
-    // Get all notifications that haven't expired yet
+
+    // ✅ Read the phone the frontend sends (?phone=...)
+    const rawPhone = c.req.query('phone') || '';
+    const phone = rawPhone.toString().trim().replace(/[^\d+]/g, '');
+
     const active = await db.select().from(globalNotifications)
-      .where(gte(globalNotifications.expiresAt, now))
+      .where(
+        and(
+          gte(globalNotifications.expiresAt, now),
+          // ✅ Broadcast (NULL or empty) OR targeted at this user's phone
+          or(
+            isNull(globalNotifications.targetPhone),
+            eq(globalNotifications.targetPhone, ''),
+            phone ? eq(globalNotifications.targetPhone, phone) : sql`false`
+          )
+        )
+      )
       .orderBy(desc(globalNotifications.createdAt));
 
     return c.json({ success: true, notifications: active }, 200);

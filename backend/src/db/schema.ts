@@ -263,14 +263,19 @@ export const stories = pgTable('stories', {
 });
 
 // ✅ 2. Global Popup Notifications
+// ✅ 2. Global Popup Notifications (UPDATED: targeted by phone)
 export const globalNotifications = pgTable('global_notifications', {
   id: uuid('id').defaultRandom().primaryKey(),
   titleAm: text('title_am'),
   titleEn: text('title_en'),
   contentAm: text('content_am'),
   contentEn: text('content_en'),
-  imageUrl: text('image_url'), // ✅ Add this line
-  expiresAt: timestamp('expires_at').notNull(),
+  imageUrl: text('image_url'),
+
+  // ✅ NEW: null / empty = broadcast to ALL; otherwise only this phone
+  targetPhone: text('target_phone'),
+
+  expiresAt: timestamp('expires_at').notNull(),   // ✅ unchanged — already exists
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
